@@ -49,6 +49,22 @@ namespace TalkOut.Data
         public int maxTurns = 20;
         public string maxTurnsOutcomeId = "full_ticket";
 
+        [Header("Hard time limit")]
+        [Tooltip("Seconds before the NPC ends the scene themselves (0 = no limit)")]
+        public float timeLimitSeconds = 300f;
+        [Tooltip("What the NPC says when time runs out")]
+        [TextArea(2, 3)] public string timeoutLine;
+        [Tooltip("Actions performed for the timeout ending (e.g. write ticket, storm off)")]
+        public List<string> timeoutActionIds = new List<string>();
+        [Tooltip("Outcome forced when time runs out")]
+        public string timeoutOutcomeId = "full_ticket";
+
+        [Header("Idle player")]
+        [Tooltip("Seconds of player silence before it becomes a scene event the NPC can react to")]
+        public float idleNudgeSeconds = 20f;
+        [Tooltip("Event text describing the player's silence")]
+        [TextArea(2, 3)] public string idleEventText = "The player just sits there in silence.";
+
         [Tooltip("Per-turn clamp on any single stat delta proposed by the LLM")]
         public float maxStatDeltaPerTurn = 20f;
 

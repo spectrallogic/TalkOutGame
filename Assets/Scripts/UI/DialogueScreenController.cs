@@ -30,6 +30,7 @@ namespace TalkOut.UI
         private Label goalBanner;
         private Label timerLabel;
         private VisualElement outcomeOverlay;
+        private Label outcomeVerdict;
         private Label outcomeTitle;
         private Label outcomeScore;
         private Label outcomeTime;
@@ -53,6 +54,7 @@ namespace TalkOut.UI
             goalBanner = root.Q<Label>("goal-banner");
             timerLabel = root.Q<Label>("timer");
             outcomeOverlay = root.Q<VisualElement>("outcome-overlay");
+            outcomeVerdict = root.Q<Label>("outcome-verdict");
             outcomeTitle = root.Q<Label>("outcome-title");
             outcomeScore = root.Q<Label>("outcome-score");
             outcomeTime = root.Q<Label>("outcome-time");
@@ -132,9 +134,19 @@ namespace TalkOut.UI
                 goalBanner.text = $"<color=#F5C518>GOAL:</color>  {turnController.Scenario.playerGoal}";
             }
 
-            if (turnController != null && timerLabel != null)
+            if (turnController != null && timerLabel != null && turnController.Scenario != null)
             {
-                timerLabel.text = FormatTime(turnController.ElapsedSeconds);
+                float limit = turnController.Scenario.timeLimitSeconds;
+                if (limit > 0)
+                {
+                    float remaining = Mathf.Max(0f, limit - turnController.ElapsedSeconds);
+                    timerLabel.text = FormatTime(remaining);
+                    timerLabel.EnableInClassList("timer-low", remaining <= 60f);
+                }
+                else
+                {
+                    timerLabel.text = FormatTime(turnController.ElapsedSeconds);
+                }
             }
 
             if (!chatMode && Input.GetKeyDown(KeyCode.Return))
@@ -259,6 +271,8 @@ namespace TalkOut.UI
 
         private void OnSceneEnded(OutcomeRule outcome)
         {
+            outcomeVerdict.text = outcome.isWin ? "YOU PASSED" : "YOU FAILED";
+            outcomeVerdict.EnableInClassList("failed", !outcome.isWin);
             outcomeTitle.text = (outcome.isWin ? "🎉 " : "🚨 ") + outcome.title;
             if (outcome.isWin)
             {

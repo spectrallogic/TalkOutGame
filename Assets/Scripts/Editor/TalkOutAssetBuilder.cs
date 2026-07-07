@@ -129,6 +129,15 @@ namespace TalkOut.EditorTools
                     effects: E(StatEffect.Flag("backupCalled", true)),
                     conditions: C(StateCondition.Flag("backupCalled", false))),
 
+                Action("OfficerOrderOut", "officer orders the driver OUT of the car and arrests them (ENDS THE SCENE — reserve for when the driver has truly earned it)",
+                    "The officer yanks your door open. \"Out of the vehicle. NOW. Hands where I can see them.\"", "officer",
+                    ends: true, outcomeId: "arrest"),
+
+                Action("OfficerStormOff", "officer is done with this conversation and walks back to his cruiser",
+                    "He slaps the ticket under your wiper and walks back to his cruiser without looking back.", "officer",
+                    move: "PoliceCar",
+                    conditions: C(StateCondition.Flag("ticketWritten", true))),
+
                 Action("OfficerTapTicketPad", "officer taps his ticket pad — a silent warning",
                     "The officer slowly taps his ticket pad.", "officer", prop: "ticketPad"),
 
@@ -215,6 +224,14 @@ namespace TalkOut.EditorTools
             scenario.outcomes = outcomes;
             scenario.maxTurns = 22;
             scenario.maxTurnsOutcomeId = "reduced_ticket";
+            scenario.timeLimitSeconds = 300f;
+            scenario.timeoutLine =
+                "Aaaand we're done here. I've got a shift to finish and you've got a ticket to sign.";
+            scenario.timeoutActionIds = new List<string> { "OfficerWriteTicket", "OfficerStormOff" };
+            scenario.timeoutOutcomeId = "full_ticket";
+            scenario.idleNudgeSeconds = 20f;
+            scenario.idleEventText =
+                "The driver just sits there, staring, saying absolutely nothing.";
             scenario.playerLabel = "the driver";
             scenario.playerTranscriptName = "Driver";
             scenario.winOutcomeId = "talked_out";
@@ -329,6 +346,14 @@ namespace TalkOut.EditorTools
             scenario.loseOutcomeId = "date_over";
             scenario.maxTurnsOutcomeId = "checked_out";
             scenario.maxTurns = 22;
+            scenario.timeLimitSeconds = 300f;
+            scenario.timeoutLine =
+                "Okay. This was... an experience. I'm going to go. Don't walk me out.";
+            scenario.timeoutActionIds = new List<string> { "ChloeLeave" };
+            scenario.timeoutOutcomeId = "date_over";
+            scenario.idleNudgeSeconds = 18f;
+            scenario.idleEventText =
+                "The player stares at Chloe in total silence. The silence is developing a personality.";
             scenario.stats = new List<StatDefinition>
             {
                 new StatDefinition { id = "annoyance", initial = 15, min = 0, max = 100, adjective = "annoyed" },

@@ -23,9 +23,13 @@ namespace TalkOut.Actors
         /// Set by NpcSpeaker while TTS audio is playing.
         public bool Talking { get; set; }
 
+        /// Set while the player is keeping them waiting: expectant head tilt.
+        public bool WaitingForPlayer { get; set; }
+
         private float impulse;   // 0..1 spike that decays
         private float seed;
         private float talkBlend; // smoothed 0..1
+        private float waitBlend; // smoothed 0..1
 
         private void Start()
         {
@@ -42,6 +46,7 @@ namespace TalkOut.Actors
         {
             impulse = Mathf.MoveTowards(impulse, 0f, Time.deltaTime * 0.7f);
             talkBlend = Mathf.MoveTowards(talkBlend, Talking ? 1f : 0f, Time.deltaTime * 4f);
+            waitBlend = Mathf.MoveTowards(waitBlend, WaitingForPlayer ? 1f : 0f, Time.deltaTime * 1.5f);
 
             float energy = Mathf.Max(talkBlend, impulse);
             float degrees = Mathf.Lerp(idleDegrees, talkDegrees, energy) * (1f + impulse);
@@ -63,6 +68,9 @@ namespace TalkOut.Actors
             {
                 float nod = (Mathf.PerlinNoise(t * 1.3f, seed + 5f) - 0.5f) * 2f * headBobDegrees * energy;
                 float tilt = (Mathf.PerlinNoise(seed + 9f, t * 1.1f) - 0.5f) * 2f * headBobDegrees * 0.8f * (0.3f + energy);
+                // expectant "...well?" head tilt while the player stalls
+                tilt += waitBlend * 16f;
+                nod += waitBlend * Mathf.Sin(Time.time * 0.8f + seed) * 2.5f;
                 head.localRotation = Quaternion.Euler(nod, 0f, tilt);
             }
         }

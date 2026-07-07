@@ -38,6 +38,19 @@ namespace TalkOut.World
             }
         }
 
+        private void Update()
+        {
+            // expectant head tilt when the player is keeping them waiting
+            if (turnController == null || turnController.Scenario == null) return;
+            bool waiting = turnController.Phase == TurnPhase.AwaitingInput &&
+                           turnController.IdleSeconds > 8f;
+            if (actors.TryGetValue(turnController.Scenario.respondingNpcId, out var main) &&
+                main.wobble != null)
+            {
+                main.wobble.WaitingForPlayer = waiting;
+            }
+        }
+
         private void OnDestroy()
         {
             if (turnController != null)
@@ -55,9 +68,11 @@ namespace TalkOut.World
             if (actors.TryGetValue(mainId, out var main) && main.face != null)
             {
                 main.face.SetFace(mood);
-                if (main.wobble != null && (mood == "angry" || mood == "amused"))
+                if (main.wobble != null)
                 {
-                    main.wobble.Impulse(0.7f);
+                    if (mood == "angry") main.wobble.Impulse(1f);       // full flail
+                    else if (mood == "amused") main.wobble.Impulse(0.8f);
+                    else if (mood == "suspicious") main.wobble.Impulse(0.35f);
                 }
             }
             if (actors.TryGetValue("passenger", out var passenger) && passenger.face != null)

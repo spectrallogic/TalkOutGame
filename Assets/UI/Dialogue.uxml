@@ -25,6 +25,7 @@
 
         <ui:VisualElement name="outcome-overlay" class="outcome-overlay hidden">
             <ui:VisualElement name="outcome-card" class="outcome-card">
+                <ui:Label name="outcome-verdict" text="" class="outcome-verdict" />
                 <ui:Label name="outcome-title" text="" class="outcome-title" />
                 <ui:Label name="outcome-score" text="" class="outcome-score" />
                 <ui:Label name="outcome-time" text="" class="outcome-time" />

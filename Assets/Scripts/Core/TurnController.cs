@@ -39,6 +39,11 @@ namespace TalkOut.Core
         public int LastRunScore { get; private set; }
         public bool LastRunIsNewBest { get; private set; }
 
+        /// Seconds the player has been silent while input was open.
+        public float IdleSeconds { get; private set; }
+        private int idleNudgesFired;
+        private bool timeoutTriggered;
+
         public event Action<bool> ThinkingChanged;
         public event Action<string> PartialReply;
         public event Action<string> CopMoodChanged;
@@ -96,6 +101,60 @@ namespace TalkOut.Core
         private void Update()
         {
             if (timerRunning) ElapsedSeconds += Time.deltaTime;
+
+            // idle awareness: silence becomes a scene event the NPC can react to
+            if (Phase == TurnPhase.AwaitingInput && timerRunning)
+            {
+                IdleSeconds += Time.deltaTime;
+                if (Scenario.idleNudgeSeconds > 0 && IdleSeconds >= Scenario.idleNudgeSeconds &&
+                    idleNudgesFired < 3)
+                {
+                    idleNudgesFired++;
+                    IdleSeconds = -8f; // brief grace before it can fire again
+                    if (State.HasStat("annoyance")) State.ApplyStatDelta("annoyance", 4f);
+                    if (State.HasStat("awkwardness")) State.ApplyStatDelta("awkwardness", 5f);
+                    ReportPlayerInteraction(Scenario.idleEventText, copMayReact: true);
+                }
+            }
+            else if (Phase != TurnPhase.AwaitingInput)
+            {
+                IdleSeconds = 0f;
+            }
+
+            // hard time limit: the NPC ends it themselves
+            if (!timeoutTriggered && timerRunning && Scenario != null &&
+                Scenario.timeLimitSeconds > 0 && ElapsedSeconds >= Scenario.timeLimitSeconds &&
+                Phase == TurnPhase.AwaitingInput)
+            {
+                timeoutTriggered = true;
+                _ = RunTimeoutAsync();
+            }
+        }
+
+        private async Task RunTimeoutAsync()
+        {
+            Phase = TurnPhase.RunningActions;
+            if (!string.IsNullOrEmpty(Scenario.timeoutLine))
+            {
+                Log.Add(EventKind.NpcSaid, npcDisplayName, Scenario.timeoutLine);
+            }
+            foreach (var actionId in Scenario.timeoutActionIds)
+            {
+                var action = Scenario.GetAction(actionId);
+                if (action == null) continue;
+                ApplyEngineEffects(action);
+                if (!string.IsNullOrEmpty(action.narrationText))
+                {
+                    Log.Add(EventKind.SceneBeat, "", action.narrationText);
+                }
+                if (performer != null)
+                {
+                    try { await performer.PerformAsync(action); }
+                    catch (Exception e) { Debug.LogException(e); }
+                    if (this == null) return;
+                }
+            }
+            EndScene(Scenario.timeoutOutcomeId);
         }
 
         public List<ActionDefinition> ComputeAvailableActions()
@@ -256,24 +315,28 @@ namespace TalkOut.Core
             else if (endsSceneOutcomeId != null) outcomeId = endsSceneOutcomeId;
             else if (PlayerTurnsTaken >= Scenario.maxTurns) outcomeId = Scenario.maxTurnsOutcomeId;
 
-            if (outcomeId != null)
-            {
-                var outcome = Scenario.GetOutcome(outcomeId);
-                if (outcome != null)
-                {
-                    Phase = TurnPhase.SceneOver;
-                    timerRunning = false;
-                    LastRunScore = Scoring.Compute(outcome.isWin, ElapsedSeconds, PlayerTurnsTaken);
-                    LastRunIsNewBest = Save.SaveSystem.RecordOutcome(
-                        Scenario.scenarioId, outcome, ElapsedSeconds, PlayerTurnsTaken, LastRunScore);
-                    Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
-                    SceneEnded?.Invoke(outcome);
-                    return;
-                }
-                Debug.LogError($"[TurnController] Unknown outcome id '{outcomeId}'");
-            }
+            if (outcomeId != null && EndScene(outcomeId)) return;
 
             Phase = TurnPhase.AwaitingInput;
+            IdleSeconds = 0f;
+        }
+
+        private bool EndScene(string outcomeId)
+        {
+            var outcome = Scenario.GetOutcome(outcomeId);
+            if (outcome == null)
+            {
+                Debug.LogError($"[TurnController] Unknown outcome id '{outcomeId}'");
+                return false;
+            }
+            Phase = TurnPhase.SceneOver;
+            timerRunning = false;
+            LastRunScore = Scoring.Compute(outcome.isWin, ElapsedSeconds, PlayerTurnsTaken);
+            LastRunIsNewBest = Save.SaveSystem.RecordOutcome(
+                Scenario.scenarioId, outcome, ElapsedSeconds, PlayerTurnsTaken, LastRunScore);
+            Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
+            SceneEnded?.Invoke(outcome);
+            return true;
         }
 
         private void ApplyEngineEffects(ActionDefinition action)
