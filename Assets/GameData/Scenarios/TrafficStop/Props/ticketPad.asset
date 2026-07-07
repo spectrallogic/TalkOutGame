@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: ticketPad
   displayName: Ticket Pad
-  llmDescription: 'ticketPad: the officer''s ticket pad, hangs off his belt'
+  llmDescription: 'ticketPad: the officer''s ticket pad on his belt'
   highlightColor: {r: 1, g: 0.9, b: 0.3, a: 1}

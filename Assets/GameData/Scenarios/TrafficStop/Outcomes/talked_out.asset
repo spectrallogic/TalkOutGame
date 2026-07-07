@@ -14,11 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: talked_out
   title: TALKED YOUR WAY OUT
-  resultText: The officer lets you off with a warning. You absolute legend.
+  resultText: The officer let you go. You absolute legend. Benny can breathe again.
   priority: 90
   isWin: 1
-  conditions:
-  - kind: 0
-    key: sympathy
-    comparator: 1
-    value: 80
+  conditions: []

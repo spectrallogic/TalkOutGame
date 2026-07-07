@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: coffee
   displayName: Coffee Cup
-  llmDescription: 'coffee: the officer''s coffee cup resting on the police car'
+  llmDescription: 'coffee: the officer''s coffee cup on the police car hood'
   highlightColor: {r: 0.9, g: 0.6, b: 0.3, a: 1}

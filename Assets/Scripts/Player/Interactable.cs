@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TalkOut.Core;
+using TalkOut.Data;
 
 namespace TalkOut.Player
 {
@@ -24,6 +26,9 @@ namespace TalkOut.Player
         public bool isToggle;
         public bool copMayReact = true;
         public float cooldownSeconds = 2f;
+
+        [Tooltip("Instant nudges to the officer's emotional meters (scaled up on repeats)")]
+        public List<StatEffect> immediateEffects = new List<StatEffect>();
 
         [Header("Animation")]
         [Tooltip("Rotated by openEuler when used/opened (e.g. glove box lid)")]
@@ -76,7 +81,7 @@ namespace TalkOut.Player
 
             Animate();
             if (audioSource != null && audioSource.clip != null) audioSource.Play();
-            turnController.ReportPlayerInteraction(text, copMayReact);
+            turnController.ReportPlayerInteraction(text, copMayReact, immediateEffects);
         }
 
         private void Animate()

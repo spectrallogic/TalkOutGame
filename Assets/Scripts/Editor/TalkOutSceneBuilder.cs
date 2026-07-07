@@ -226,8 +226,8 @@ namespace TalkOut.EditorTools
             var speaker = officer.AddComponent<NpcSpeaker>();
             speaker.actorDisplayName = "Officer Glazer";
             speaker.voiceName = "David";
-            speaker.rate = 0;
-            speaker.pitch = -3;
+            speaker.rate = 2;   // natural clip, not a drawl
+            speaker.pitch = -2;
             speaker.wobble = officer.GetComponent<WobbleAnimator>();
 
             var license = Prim(PrimitiveType.Cube, "LicenseCard", playerCar,
@@ -386,6 +386,11 @@ namespace TalkOut.EditorTools
             horn.audioSource = hornAudio;
             horn.eventTextTemplate = "The driver honked the horn. At a police officer. During a traffic stop.";
             horn.cooldownSeconds = 3f;
+            horn.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 8),
+                StatEffect.Delta("suspicion", 3),
+            };
 
             // car radio
             var carRadio = Prim(PrimitiveType.Cube, "CarRadio", playerCar,
@@ -396,6 +401,10 @@ namespace TalkOut.EditorTools
             radioToggle.pulseTarget = carRadio.transform;
             radioToggle.eventTextTemplate = "The driver turned on the car radio. Extremely loud polka music fills the night.";
             radioToggle.eventTextClose = "The driver sheepishly turned the radio back off.";
+            radioToggle.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 6),
+            };
 
             // sunglasses
             var shades = Prim(PrimitiveType.Cube, "Sunglasses", playerCar,
@@ -405,6 +414,17 @@ namespace TalkOut.EditorTools
             shadesUse.pulseTarget = shades.transform;
             shadesUse.eventTextTemplate = "The driver slowly put on sunglasses. It is currently the middle of the night.";
             shadesUse.cooldownSeconds = 8f;
+            shadesUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 5),
+                StatEffect.Delta("annoyance", 3),
+            };
+
+            // opening the glove box in front of a cop is... a choice
+            glove.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("suspicion", 7),
+            };
         }
 
         // ====================================================================

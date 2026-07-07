@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: PassengerBlamePlayer
   m_EditorClassIdentifier: 
   id: PassengerBlamePlayer
-  llmDescription: the passenger throws the player under the bus
+  llmDescription: the passenger throws the driver under the bus
   narrationText: Benny points at you. "IT WAS ALL THEIR IDEA, OFFICER."
   actorId: passenger
   targetPropId: 
-  animationKey: point
+  animationKey: panicShake
   moveToLocationId: 
   expressionOverride: panicked
   engineEffects: []

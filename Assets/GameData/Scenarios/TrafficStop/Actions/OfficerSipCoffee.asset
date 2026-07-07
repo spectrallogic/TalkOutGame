@@ -17,15 +17,10 @@ MonoBehaviour:
   narrationText: The officer takes a long sip of coffee, maintaining eye contact.
   actorId: officer
   targetPropId: coffee
-  animationKey: sipCoffee
+  animationKey: 
   moveToLocationId: 
   expressionOverride: 
-  engineEffects:
-  - kind: 0
-    key: patience
-    amount: 5
-    boolValue: 0
-    stringValue: 
+  engineEffects: []
   availabilityConditions: []
   endsScene: 0
   outcomeId: 

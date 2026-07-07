@@ -29,7 +29,7 @@ namespace TalkOut.Directing
             agent.cachePrompt = true;
         }
 
-        public async Task<JudgeVerdict> JudgeAsync(EventLog log,
+        public async Task<JudgeVerdict> JudgeAsync(EventLog log, SceneStateModel state,
             IReadOnlyList<ActionDefinition> availableActions, CancellationToken ct)
         {
             try
@@ -41,8 +41,9 @@ namespace TalkOut.Directing
                 }
                 if (agent.llm.failed) return FallbackLibrary.GetVerdict("LLM failed to start");
 
-                agent.SetGrammar(GrammarBuilder.BuildJudgeGrammar(availableActions.Select(a => a.id)));
-                string query = PromptBuilder.BuildJudgeQuery(log, availableActions);
+                agent.SetGrammar(GrammarBuilder.BuildJudgeGrammar(
+                    availableActions.Select(a => a.id), state?.Stats.Keys));
+                string query = PromptBuilder.BuildJudgeQuery(log, state, availableActions);
 
                 Task<string> chat = agent.Chat(query, null, null, addToHistory: false);
                 float timeout = config != null ? config.timeoutSeconds : 45f;
@@ -77,6 +78,17 @@ namespace TalkOut.Directing
                 };
 
                 if (!JudgeVerdict.Moods.Contains(verdict.CopMood)) verdict.CopMood = "neutral";
+
+                if (json["mood_changes"] is JObject moodChanges)
+                {
+                    foreach (var prop in moodChanges.Properties())
+                    {
+                        if (prop.Value.Type == JTokenType.Integer || prop.Value.Type == JTokenType.Float)
+                        {
+                            verdict.MoodChanges[prop.Name] = prop.Value.Value<float>();
+                        }
+                    }
+                }
 
                 var offered = new HashSet<string>(availableActions.Select(a => a.id));
                 if (json["actions"] is JArray actions)

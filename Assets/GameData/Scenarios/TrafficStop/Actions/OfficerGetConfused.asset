@@ -17,7 +17,7 @@ MonoBehaviour:
   narrationText: The officer looks deeply, existentially confused.
   actorId: officer
   targetPropId: 
-  animationKey: headTilt
+  animationKey: 
   moveToLocationId: 
   expressionOverride: confused
   engineEffects: []

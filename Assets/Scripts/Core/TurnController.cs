@@ -105,11 +105,32 @@ namespace TalkOut.Core
             }
         }
 
-        /// Entry point for clickable interactables. Always recorded in memory;
-        /// the cop only gets a chance to react when the scene is idle.
-        public async void ReportPlayerInteraction(string eventText, bool copMayReact = true)
+        /// Entry point for clickable interactables. Always recorded in memory
+        /// (and its immediate emotional effects always land); the cop only gets
+        /// a chance to react when the scene is idle.
+        public async void ReportPlayerInteraction(string eventText, bool copMayReact = true,
+            IEnumerable<StatEffect> immediateEffects = null)
         {
             Log.Add(EventKind.PlayerAction, "", eventText);
+
+            int timesHappened = 0;
+            foreach (var e in Log.Events)
+            {
+                if (e.kind == EventKind.PlayerAction && e.text == eventText) timesHappened++;
+            }
+
+            if (immediateEffects != null)
+            {
+                foreach (var effect in immediateEffects)
+                {
+                    if (effect.kind == StatEffect.Kind.StatDelta)
+                    {
+                        // repeat offenses sting more
+                        State.ApplyStatDelta(effect.key, effect.amount * Mathf.Min(timesHappened, 3));
+                    }
+                }
+            }
+
             if (!copMayReact || Phase != TurnPhase.AwaitingInput) return;
 
             try
@@ -117,7 +138,7 @@ namespace TalkOut.Core
                 Phase = TurnPhase.CopThinking;
                 ThinkingChanged?.Invoke(true);
                 string reaction = await copBrain.ReactToEventAsync(
-                    Log, eventText, p => PartialReply?.Invoke(p), destroyCancellationToken);
+                    Log, State, eventText, timesHappened, p => PartialReply?.Invoke(p), destroyCancellationToken);
                 if (this == null) return;
                 ThinkingChanged?.Invoke(false);
 
@@ -148,7 +169,7 @@ namespace TalkOut.Core
             Phase = TurnPhase.CopThinking;
             ThinkingChanged?.Invoke(true);
             string reply = await copBrain.ReplyAsync(
-                Log, playerLine, p => PartialReply?.Invoke(p), destroyCancellationToken);
+                Log, State, playerLine, p => PartialReply?.Invoke(p), destroyCancellationToken);
             if (this == null) return;
             ThinkingChanged?.Invoke(false);
 
@@ -163,7 +184,7 @@ namespace TalkOut.Core
             JudgeVerdict verdict;
             try
             {
-                verdict = await judge.JudgeAsync(Log, available, destroyCancellationToken);
+                verdict = await judge.JudgeAsync(Log, State, available, destroyCancellationToken);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception e)
@@ -174,6 +195,12 @@ namespace TalkOut.Core
             if (this == null) return;
 
             LastVerdict = verdict;
+
+            // Judge's emotional ruling: clamped nudges to the officer's meters.
+            foreach (var kv in verdict.MoodChanges)
+            {
+                State.ApplyStatDelta(kv.Key, Mathf.Clamp(kv.Value, -20f, 20f));
+            }
             CopMoodChanged?.Invoke(verdict.CopMood);
 
             // Physical beats picked by the judge.

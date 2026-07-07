@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: license
   displayName: Driver's License
-  llmDescription: 'license: the player''s driver''s license on the dashboard'
+  llmDescription: 'license: the player''s driver''s license'
   highlightColor: {r: 0.6, g: 1, b: 0.6, a: 1}

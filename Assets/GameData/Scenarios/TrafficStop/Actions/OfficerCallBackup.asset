@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: OfficerCallBackup
   m_EditorClassIdentifier: 
   id: OfficerCallBackup
-  llmDescription: "officer radios for backup \u2014 serious escalation"
-  narrationText: The officer steps back and calls for backup.
+  llmDescription: "officer radios for backup \u2014 things are escalating"
+  narrationText: The officer steps back and murmurs into his radio.
   actorId: officer
   targetPropId: radio
-  animationKey: armRaiseL
+  animationKey: 
   moveToLocationId: 
   expressionOverride: 
   engineEffects:
@@ -27,10 +27,6 @@ MonoBehaviour:
     boolValue: 1
     stringValue: 
   availabilityConditions:
-  - kind: 0
-    key: suspicion
-    comparator: 0
-    value: 60
   - kind: 1
     key: backupCalled
     comparator: 0

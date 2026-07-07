@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: OfficerShineFlashlight
   m_EditorClassIdentifier: 
   id: OfficerShineFlashlight
-  llmDescription: officer shines his flashlight at the player's face
-  narrationText: The officer shines his flashlight directly in your eyes.
+  llmDescription: officer shines his flashlight at the driver's face
+  narrationText: The flashlight beam hits you square in the eyes.
   actorId: officer
   targetPropId: flashlight
-  animationKey: armRaise
+  animationKey: 
   moveToLocationId: 
   expressionOverride: 
   engineEffects: []

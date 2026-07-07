@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: OfficerLaugh
   llmDescription: officer cracks up despite himself
-  narrationText: The officer bursts out laughing, then tries to disguise it as a
-    cough.
+  narrationText: The officer bursts out laughing, then disguises it as a cough.
   actorId: officer
   targetPropId: 
   animationKey: laugh

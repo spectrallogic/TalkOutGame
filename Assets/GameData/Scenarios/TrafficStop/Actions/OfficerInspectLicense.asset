@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: OfficerInspectLicense
   m_EditorClassIdentifier: 
   id: OfficerInspectLicense
-  llmDescription: officer takes a hard look at the driver's license
-  narrationText: The officer inspects your license.
+  llmDescription: officer takes a long, hard look at the license
+  narrationText: The officer inspects your license like it personally owes him money.
   actorId: officer
   targetPropId: license
-  animationKey: leanIn
+  animationKey: 
   moveToLocationId: 
   expressionOverride: 
   engineEffects: []

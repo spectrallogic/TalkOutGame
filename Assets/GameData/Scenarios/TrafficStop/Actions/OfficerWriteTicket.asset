@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: OfficerWriteTicket
   m_EditorClassIdentifier: 
   id: OfficerWriteTicket
-  llmDescription: officer starts writing the ticket
-  narrationText: The officer starts writing a ticket.
+  llmDescription: officer decides it's over and writes the full ticket (ENDS THE
+    SCENE as a loss for the driver)
+  narrationText: The officer flips open his pad and writes the ticket.
   actorId: officer
   targetPropId: ticketPad
   animationKey: scribble
@@ -26,10 +27,6 @@ MonoBehaviour:
     amount: 0
     boolValue: 1
     stringValue: 
-  availabilityConditions:
-  - kind: 1
-    key: ticketWritten
-    comparator: 0
-    value: 0
-  endsScene: 0
-  outcomeId: 
+  availabilityConditions: []
+  endsScene: 1
+  outcomeId: full_ticket

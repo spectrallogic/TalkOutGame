@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: PassengerStaySilent
   m_EditorClassIdentifier: 
   id: PassengerStaySilent
-  llmDescription: the passenger goes suspiciously silent
-  narrationText: Benny stares straight ahead, perfectly still, like a very sweaty
-    statue.
+  llmDescription: the passenger goes suspiciously, perfectly still
+  narrationText: Benny stares straight ahead like a very sweaty statue.
   actorId: passenger
   targetPropId: 
   animationKey: 

@@ -31,20 +31,20 @@ namespace TalkOut.Directing
             agent.cachePrompt = true;
         }
 
-        public async Task<string> ReplyAsync(EventLog log, string playerLine,
+        public async Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
             Action<string> onPartial, CancellationToken ct)
         {
-            string query = PromptBuilder.BuildCopReplyQuery(log, playerLine);
+            string query = PromptBuilder.BuildCopReplyQuery(log, state, playerLine);
             string raw = await RunChat(query, onPartial, ct);
             if (raw == null) return FallbackLibrary.GetCopLine("cop reply failed");
             string cleaned = CleanReply(raw);
             return string.IsNullOrEmpty(cleaned) ? FallbackLibrary.GetCopLine("empty cop reply") : cleaned;
         }
 
-        public async Task<string> ReactToEventAsync(EventLog log, string eventText,
-            Action<string> onPartial, CancellationToken ct)
+        public async Task<string> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
+            int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
-            string query = PromptBuilder.BuildCopReactionQuery(log, eventText);
+            string query = PromptBuilder.BuildCopReactionQuery(log, state, eventText, timesHappened);
             string raw = await RunChat(query, onPartial, ct);
             if (raw == null) return ""; // failure on a reaction = officer ignores it
             string cleaned = CleanReply(raw);

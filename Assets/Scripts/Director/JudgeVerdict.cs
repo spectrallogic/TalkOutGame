@@ -18,6 +18,10 @@ namespace TalkOut.Directing
         /// 0-2 physical scene actions from the approved catalog.
         public List<string> ActionIds = new List<string>();
 
+        /// Deltas to the officer's emotional meters (annoyance, suspicion...),
+        /// clamped by the engine before applying.
+        public Dictionary<string, float> MoodChanges = new Dictionary<string, float>();
+
         public bool IsFallback;
         public string RawOutput = "";
 

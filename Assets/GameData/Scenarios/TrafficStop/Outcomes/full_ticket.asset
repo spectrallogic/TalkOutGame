@@ -18,8 +18,4 @@ MonoBehaviour:
     time'.
   priority: 70
   isWin: 0
-  conditions:
-  - kind: 0
-    key: suspicion
-    comparator: 1
-    value: 100
+  conditions: []

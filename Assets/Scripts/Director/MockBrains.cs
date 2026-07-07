@@ -23,7 +23,7 @@ namespace TalkOut.Directing
             "Okay. Okay. You know what? Fine. Get out of here before I change my mind."
         };
 
-        public async Task<string> ReplyAsync(EventLog log, string playerLine,
+        public async Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
             Action<string> onPartial, CancellationToken ct)
         {
             await Task.Delay(900, ct);
@@ -32,11 +32,16 @@ namespace TalkOut.Directing
             return reply;
         }
 
-        public async Task<string> ReactToEventAsync(EventLog log, string eventText,
-            Action<string> onPartial, CancellationToken ct)
+        public async Task<string> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
+            int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
             await Task.Delay(600, ct);
-            if (eventText.Contains("horn")) return "Did you just honk at me?";
+            if (eventText.Contains("honked"))
+            {
+                return timesHappened > 1
+                    ? "Okay. Do it a third time. See what happens."
+                    : "What the— did you just honk at me?";
+            }
             if (eventText.Contains("glove")) return "Slowly. What's in there?";
             return ""; // ignores the rest
         }
@@ -46,7 +51,7 @@ namespace TalkOut.Directing
 
     public class MockJudge : IJudge
     {
-        public async Task<JudgeVerdict> JudgeAsync(EventLog log,
+        public async Task<JudgeVerdict> JudgeAsync(EventLog log, SceneStateModel state,
             IReadOnlyList<ActionDefinition> availableActions, CancellationToken ct)
         {
             await Task.Delay(300, ct);

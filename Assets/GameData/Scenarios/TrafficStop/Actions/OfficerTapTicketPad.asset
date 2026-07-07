@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: OfficerTapTicketPad
   m_EditorClassIdentifier: 
   id: OfficerTapTicketPad
-  llmDescription: "officer taps his ticket pad meaningfully \u2014 a warning"
+  llmDescription: "officer taps his ticket pad \u2014 a silent warning"
   narrationText: The officer slowly taps his ticket pad.
   actorId: officer
   targetPropId: ticketPad
-  animationKey: point
+  animationKey: 
   moveToLocationId: 
   expressionOverride: 
   engineEffects: []

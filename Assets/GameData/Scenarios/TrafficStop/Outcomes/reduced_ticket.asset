@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: reduced_ticket
   m_EditorClassIdentifier: 
   id: reduced_ticket
-  title: REDUCED TICKET
-  resultText: The officer got bored and wrote you a smaller ticket just to end the
-    conversation.
+  title: HE GOT BORED
+  resultText: The officer got tired of this conversation and wrote you a smaller
+    ticket just to end it.
   priority: 60
   isWin: 0
   conditions: []

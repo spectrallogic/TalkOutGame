@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: OfficerWalkToPassengerWindow
   m_EditorClassIdentifier: 
   id: OfficerWalkToPassengerWindow
-  llmDescription: officer walks around to the passenger window to question the passenger
-  narrationText: The officer walks around to the passenger window.
+  llmDescription: officer walks around the car to eyeball the passenger
+  narrationText: The officer walks around to the passenger window. Benny stops breathing.
   actorId: officer
   targetPropId: 
   animationKey: 

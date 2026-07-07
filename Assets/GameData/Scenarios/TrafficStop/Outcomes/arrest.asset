@@ -14,16 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: arrest
   title: ARRESTED
-  resultText: Backup arrives. You're going downtown. Benny is already composing the
-    group-chat message.
+  resultText: You're going downtown. Benny is already composing the group-chat message.
   priority: 100
   isWin: 0
-  conditions:
-  - kind: 0
-    key: suspicion
-    comparator: 1
-    value: 90
-  - kind: 1
-    key: backupCalled
-    comparator: 0
-    value: 1
+  conditions: []
