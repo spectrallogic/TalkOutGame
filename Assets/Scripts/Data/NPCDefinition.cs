@@ -16,6 +16,9 @@ namespace TalkOut.Data
 
         [TextArea(3, 8)] public string personality;
 
+        [Tooltip("How this character's professional mask slips as the scene goes south — fed to the prompt as 'THE MASK'")]
+        [TextArea(3, 8)] public string edgeProfile;
+
         public FaceSet faceSet;
         public GameObject prefab;
 

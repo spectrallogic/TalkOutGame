@@ -32,6 +32,15 @@ namespace TalkOut.Directing
             sb.AppendLine($"- Don't repeat what {scenario.playerLabel} said back to them. Don't summarize. Just respond.");
             sb.AppendLine("- Your current mood (given each turn) colors EVERYTHING. Annoyed = shorter, flatter. Amused = drier, playing along. Suspicious = pointed questions.");
             sb.AppendLine();
+            if (!string.IsNullOrEmpty(npc.edgeProfile))
+            {
+                sb.AppendLine();
+                sb.AppendLine("THE MASK (how you unravel):");
+                sb.AppendLine(npc.edgeProfile);
+                sb.AppendLine("Escalation is one-way within a conversation: once the mask slips, it doesn't fully come back. " +
+                              "Punch at behavior and choices, never at identity. Wit over venom — the meaner you get, the funnier it should be.");
+            }
+            sb.AppendLine();
             sb.AppendLine("EXAMPLES OF YOUR VOICE (style only, don't reuse):");
             sb.AppendLine("\"License and registration. Today, preferably.\"");
             sb.AppendLine("\"...A hamster. In a sombrero. Sir, I have questions, and I hate all of them.\"");
@@ -85,7 +94,34 @@ namespace TalkOut.Directing
                 sb.Append($" {Verbalize(adjective, kv.Value, def.min, def.max)};");
             }
             sb.AppendLine();
+            AppendEdgeDirective(sb, state);
             sb.AppendLine();
+        }
+
+        /// The mask-slip dial: past certain thresholds, the character gets
+        /// explicit permission to stop performing professionalism.
+        private static void AppendEdgeDirective(StringBuilder sb, SceneStateModel state)
+        {
+            float annoyance = state.GetStat("annoyance");
+            float amusement = state.GetStat("amusement");
+            float awkwardness = state.GetStat("awkwardness");
+
+            if (annoyance >= 85)
+            {
+                sb.AppendLine("EDGE: You are DONE. Gloves off — say what you actually think of this whole situation. Mild swearing is fine if it's earned.");
+            }
+            else if (annoyance >= 60)
+            {
+                sb.AppendLine("EDGE: Your professionalism is hanging by a thread. Let the sarcasm and pettiness leak through.");
+            }
+            else if (amusement >= 70)
+            {
+                sb.AppendLine("EDGE: You're having genuine fun now, despite yourself. Drop the formality — play along, tease, riff.");
+            }
+            else if (awkwardness >= 70)
+            {
+                sb.AppendLine("EDGE: This is so awkward you can't pretend anymore — say the quiet part out loud.");
+            }
         }
 
         /// Small models handle words better than floats — and words leak less.
