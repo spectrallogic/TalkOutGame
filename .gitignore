@@ -113,6 +113,10 @@ InitTestScene*.unity*
 !/[Aa]ssets/StreamingAssets/Models/README.md
 !/[Aa]ssets/StreamingAssets/Models/README.md.meta
 
-# LLMUnity downloaded native llama.cpp builds / caches
+# LLMUnity downloaded native llama.cpp builds / caches (GB-scale, auto-downloaded on first run)
 /[Aa]ssets/StreamingAssets/LLMUnity*
+/[Aa]ssets/StreamingAssets/LlamaLib*
 Undreamai*.zip
+
+# Whisper native caches (if whisper.unity drops anything here)
+/[Aa]ssets/StreamingAssets/Whisper*
