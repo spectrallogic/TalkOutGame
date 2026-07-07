@@ -1,42 +1,83 @@
 using System;
-using System.Reflection;
-using UnityEngine;
+using System.Diagnostics;
+using System.Text;
+using Debug = UnityEngine.Debug;
 
 namespace TalkOut.Audio
 {
-    /// Windows SAPI text-to-speech via COM reflection — offline, instant, and
-    /// built into every Windows box. The flat robotic delivery is a feature:
-    /// it's funny. Swappable later for a neural TTS (Piper/Kokoro) behind the
-    /// same surface. No-ops gracefully on machines without SAPI.
+    /// Windows text-to-speech through a persistent hidden PowerShell process
+    /// running System.Speech (Unity's Mono cannot activate COM in-process).
+    /// Offline, ships with Windows, robotic delivery = comedy. Swappable later
+    /// for a neural local TTS (Piper/Kokoro) behind this same surface.
     public class SapiVoice
     {
-        private const int SVSFlagsAsync = 1;
-        private const int SVSFPurgeBeforeSpeak = 2;
-        private const int SVSFIsXML = 8;
+        private Process process;
+        private int pendingLines; // >0 while something is queued or speaking
 
-        private readonly Type voiceType;
-        private readonly object voice;
-        private readonly int pitch; // -10..10
+        public bool Available { get; private set; }
 
-        public bool Available => voice != null;
+        public bool IsSpeaking => Available && System.Threading.Volatile.Read(ref pendingLines) > 0;
 
         public SapiVoice(string preferredVoiceName, int rate, int pitch)
         {
-            this.pitch = Mathf.Clamp(pitch, -10, 10);
             try
             {
-                voiceType = Type.GetTypeFromProgID("SAPI.SpVoice");
-                if (voiceType == null) return;
-                voice = Activator.CreateInstance(voiceType);
-                Set("Rate", Mathf.Clamp(rate, -10, 10));
-                Set("Volume", 100);
-                TrySelectVoice(preferredVoiceName);
+                Start(preferredVoiceName ?? "", Math.Clamp(rate, -10, 10), Math.Clamp(pitch, -10, 10));
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"[SapiVoice] TTS unavailable: {e.Message}");
-                voice = null;
+                Available = false;
             }
+        }
+
+        private void Start(string voiceName, int rate, int pitch)
+        {
+            int pitchPercent = pitch * 3; // -10..10 -> -30%..+30%
+            string script =
+                "$ErrorActionPreference='SilentlyContinue';" +
+                "Add-Type -AssemblyName System.Speech;" +
+                "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;" +
+                $"$s.Rate = {rate};" +
+                "foreach($v in $s.GetInstalledVoices()){" +
+                $" if($v.VoiceInfo.Name -like '*{voiceName}*' -and '{voiceName}' -ne '')" +
+                " { $s.SelectVoice($v.VoiceInfo.Name); break } };" +
+                "[Console]::Out.WriteLine('__READY__'); [Console]::Out.Flush();" +
+                "while($true){" +
+                " $line = [Console]::In.ReadLine();" +
+                " if($null -eq $line){ break };" +
+                " if($line.Length -gt 0){" +
+                "  $ssml = '<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-US\">" +
+                $"<prosody pitch=\"{(pitchPercent >= 0 ? "+" : "")}{pitchPercent}%\">' + $line + '</prosody></speak>';" +
+                "  try { $s.SpeakSsml($ssml) } catch { $s.Speak($line) };" +
+                " };" +
+                " [Console]::Out.WriteLine('__DONE__'); [Console]::Out.Flush();" +
+                "}";
+
+            string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+            process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -NonInteractive -EncodedCommand {encoded}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                }
+            };
+            process.OutputDataReceived += (_, args) =>
+            {
+                if (args.Data == "__DONE__")
+                {
+                    System.Threading.Interlocked.Decrement(ref pendingLines);
+                }
+            };
+            process.Start();
+            process.BeginOutputReadLine();
+            Available = true;
         }
 
         public void Speak(string text)
@@ -44,70 +85,41 @@ namespace TalkOut.Audio
             if (!Available || string.IsNullOrWhiteSpace(text)) return;
             try
             {
-                string xml = $"<pitch absmiddle='{pitch}'>{EscapeXml(text)}</pitch>";
-                Invoke("Speak", xml, SVSFlagsAsync | SVSFPurgeBeforeSpeak | SVSFIsXML);
+                if (process == null || process.HasExited)
+                {
+                    Available = false;
+                    Debug.LogWarning("[SapiVoice] TTS process died — voice disabled.");
+                    return;
+                }
+                // one line per utterance; XML-escaped for the SSML wrapper
+                string line = text.Replace("\r", " ").Replace("\n", " ")
+                    .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
+                    .Replace("'", "&apos;");
+                System.Threading.Interlocked.Increment(ref pendingLines);
+                process.StandardInput.WriteLine(line);
+                process.StandardInput.Flush();
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"[SapiVoice] Speak failed: {e.Message}");
+                Available = false;
             }
         }
 
-        public bool IsSpeaking
-        {
-            get
-            {
-                if (!Available) return false;
-                try
-                {
-                    // WaitUntilDone(0) returns true when idle.
-                    return !(bool)Invoke("WaitUntilDone", 0);
-                }
-                catch { return false; }
-            }
-        }
-
+        /// Tears the voice down (used on scene unload).
         public void Stop()
         {
-            if (!Available) return;
-            try { Invoke("Speak", "", SVSFlagsAsync | SVSFPurgeBeforeSpeak); }
-            catch { }
-        }
-
-        private void TrySelectVoice(string nameFragment)
-        {
-            if (string.IsNullOrEmpty(nameFragment)) return;
             try
             {
-                object voices = Invoke("GetVoices", "", "");
-                int count = (int)voices.GetType().InvokeMember(
-                    "Count", BindingFlags.GetProperty, null, voices, null);
-                for (int i = 0; i < count; i++)
+                if (process != null && !process.HasExited)
                 {
-                    object token = voices.GetType().InvokeMember(
-                        "Item", BindingFlags.InvokeMethod, null, voices, new object[] { i });
-                    string description = (string)token.GetType().InvokeMember(
-                        "GetDescription", BindingFlags.InvokeMethod, null, token, new object[] { 0 });
-                    if (description.IndexOf(nameFragment, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        Set("Voice", token);
-                        return;
-                    }
+                    process.Kill();
                 }
+                process?.Dispose();
             }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[SapiVoice] Voice select failed (using default): {e.Message}");
-            }
+            catch { }
+            process = null;
+            Available = false;
         }
-
-        private object Invoke(string member, params object[] args) =>
-            voiceType.InvokeMember(member, BindingFlags.InvokeMethod, null, voice, args);
-
-        private void Set(string property, object value) =>
-            voiceType.InvokeMember(property, BindingFlags.SetProperty, null, voice, new[] { value });
-
-        private static string EscapeXml(string text) =>
-            text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
     }
 }
