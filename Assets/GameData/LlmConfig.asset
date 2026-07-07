@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36a676363d1d94f44bdab9dea33f1f32, type: 3}
   m_Name: LlmConfig
   m_EditorClassIdentifier: 
-  modelFileName: Phi-3.5-mini-instruct-Q4_K_M.gguf
+  modelFileName: Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf
   overridePath: 
   contextSize: 2048
   maxReplyTokens: 220

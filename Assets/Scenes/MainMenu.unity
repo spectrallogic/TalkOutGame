@@ -122,7 +122,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &680879703
+--- !u!1 &170232961
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,9 +130,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 680879706}
-  - component: {fileID: 680879705}
-  - component: {fileID: 680879704}
+  - component: {fileID: 170232964}
+  - component: {fileID: 170232963}
+  - component: {fileID: 170232962}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -140,28 +140,35 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &680879704
+--- !u!114 &170232962
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 680879703}
+  m_GameObject: {fileID: 170232961}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17477fedbbcbe6945b8be8e46daab81b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   llmConfig: {fileID: 11400000, guid: c19b9afe861f0774db36785dfe97ca18, type: 2}
-  playSceneName: TrafficStop
-  scenarioIdForStats: traffic_stop
---- !u!114 &680879705
+  levels:
+  - sceneName: TrafficStop
+    scenarioId: traffic_stop
+    title: "LEVEL 1 \u2014 TRAFFIC STOP"
+    description: Talk your way out of the ticket. The hamster is not helping.
+  - sceneName: Date
+    scenarioId: the_date
+    title: "LEVEL 2 \u2014 THE DATE"
+    description: Convince Chloe to give you a second date. Do not mention the car.
+--- !u!114 &170232963
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 680879703}
+  m_GameObject: {fileID: 170232961}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
@@ -171,13 +178,13 @@ MonoBehaviour:
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: 130111a210f875943ab690676976db72, type: 3}
   m_SortingOrder: 0
---- !u!4 &680879706
+--- !u!4 &170232964
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 680879703}
+  m_GameObject: {fileID: 170232961}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -186,7 +193,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1543651059
+--- !u!1 &1625118621
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -194,9 +201,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1543651062}
-  - component: {fileID: 1543651061}
-  - component: {fileID: 1543651060}
+  - component: {fileID: 1625118624}
+  - component: {fileID: 1625118623}
+  - component: {fileID: 1625118622}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -204,25 +211,25 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &1543651060
+--- !u!81 &1625118622
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1543651059}
+  m_GameObject: {fileID: 1625118621}
   m_Enabled: 1
---- !u!20 &1543651061
+--- !u!20 &1625118623
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1543651059}
+  m_GameObject: {fileID: 1625118621}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.04, g: 0.05, b: 0.08, a: 1}
+  m_BackGroundColor: {r: 0.05, g: 0.055, b: 0.09, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -263,13 +270,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &1543651062
+--- !u!4 &1625118624
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1543651059}
+  m_GameObject: {fileID: 1625118621}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -282,5 +289,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1543651062}
-  - {fileID: 680879706}
+  - {fileID: 1625118624}
+  - {fileID: 170232964}

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eafb09f2326b8ff44a90a420a65d6612, type: 3}
+  m_Name: Chloe
+  m_EditorClassIdentifier: 
+  id: date
+  displayName: Chloe
+  intelligence: 85
+  ego: 55
+  fear: 10
+  sympathy: 45
+  patience: 50
+  personality: "Smart, funny, out of your league and fully aware of it. This first
+    date has been rocky \u2014 you talked about your car's suspension for twenty
+    minutes. Dry, modern wit; easily bored; checks her phone when a conversation
+    dies. Secretly WANTS to be impressed \u2014 genuine charm, honesty about the
+    bad date, or making her actually laugh can completely turn her around. Neediness,
+    bragging, and negging make her reach for her coat."
+  faceSet: {fileID: 11400000, guid: 872ed68fda4b6a54e9931d637a10ae45, type: 2}
+  prefab: {fileID: 0}

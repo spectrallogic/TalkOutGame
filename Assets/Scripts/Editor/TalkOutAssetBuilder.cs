@@ -36,7 +36,7 @@ namespace TalkOut.EditorTools
             BuildDateAssets();
 
             var llmConfig = CreateOrLoad<LlmConfig>("Assets/GameData/LlmConfig.asset");
-            llmConfig.modelFileName = "Phi-3.5-mini-instruct-Q4_K_M.gguf";
+            llmConfig.modelFileName = "Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf";
             EditorUtility.SetDirty(llmConfig);
 
             BuildPanelSettings();

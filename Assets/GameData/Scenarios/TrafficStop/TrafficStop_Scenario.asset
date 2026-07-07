@@ -26,6 +26,10 @@ MonoBehaviour:
     won over \u2014 when you decide to let the driver go, say it explicitly."
   openerLine: Evening. License and registration. You want to tell me how fast you
     think you were going back there?
+  playerLabel: the driver
+  playerTranscriptName: Driver
+  winOutcomeId: talked_out
+  loseOutcomeId: arrest
   judgeGuidance: "Rule ONLY from what the OFFICER says \u2014 the driver cannot release
     themselves. released=true only when the officer has clearly said the driver may
     leave (\"get out of here\", \"you're free to go\", \"just a warning this time\").

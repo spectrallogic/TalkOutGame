@@ -619,7 +619,7 @@ namespace TalkOut.EditorTools
             llm.dontDestroyOnLoad = false;
             var llmSo = new SerializedObject(llm);
             TrySet(llmSo, new[] { "_model", "model", "m_Model" },
-                p => p.stringValue = "Models/Phi-3.5-mini-instruct-Q4_K_M.gguf");
+                p => p.stringValue = "Models/Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf");
             TrySet(llmSo, new[] { "_contextSize", "contextSize" }, p => p.intValue = 4096);
             TrySet(llmSo, new[] { "_numGPULayers", "numGPULayers" }, p => p.intValue = 30);
             llmSo.ApplyModifiedPropertiesWithoutUndo();

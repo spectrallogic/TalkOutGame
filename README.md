@@ -14,7 +14,7 @@ sweating in the passenger seat, and a glove box you probably shouldn't open.
 1. Open with **Unity 2022.3.62f3** (packages restore automatically: LLMUnity,
    whisper.unity, Post Processing, Newtonsoft).
 2. Download the two models into `Assets/StreamingAssets/Models/` — see the
-   README there (Phi-3.5-mini GGUF ~2.3 GB + Whisper base.en ~148 MB, both gitignored).
+   README there (Dolphin 3.0 Llama 3.1 8B GGUF ~4.9 GB + Whisper base.en ~148 MB, both gitignored).
 3. In Unity: **Tools → TalkOut → Build Everything (Graphics + Textures + Assets + Scenes)**.
 4. Open `Assets/Scenes/TrafficStop.unity`, press **Play**.
 

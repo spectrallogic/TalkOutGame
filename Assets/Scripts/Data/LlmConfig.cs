@@ -7,7 +7,7 @@ namespace TalkOut.Data
     public class LlmConfig : ScriptableObject
     {
         [Tooltip("GGUF file name inside StreamingAssets/Models/")]
-        public string modelFileName = "Phi-3.5-mini-instruct-Q4_K_M.gguf";
+        public string modelFileName = "Dolphin3.0-Llama3.1-8B-Q4_K_M.gguf";
 
         [Tooltip("Absolute path override — leave empty to use StreamingAssets/Models. Lets the player/dev swap any model in without a code change.")]
         public string overridePath = "";
