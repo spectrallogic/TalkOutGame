@@ -1,5 +1,9 @@
 # Talk Out
 
+<p align="center">
+  <img src="Docs/cover.png" alt="TALK OUT — The Hilarious Persuasion Game. Your mouth. Your only way out." width="640" />
+</p>
+
 A first-person comedy persuasion game: you've been pulled over, and you talk —
 literally, into your microphone — until the cop lets you go. Everything runs
 **locally**: the cop is an LLM speaking freely in character, a second **judge LLM**
