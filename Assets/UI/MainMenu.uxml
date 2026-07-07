@@ -5,9 +5,26 @@
         <ui:Label name="title" text="TALK&lt;color=#F5C518&gt;OUT&lt;/color&gt;" class="title" enable-rich-text="true" />
         <ui:Label text="THE HILARIOUS PERSUASION GAME" class="subtitle" />
 
+        <ui:Label name="total-score" text="" class="total-score" enable-rich-text="true" />
+
         <ui:VisualElement name="levels" class="levels" />
 
+        <ui:VisualElement class="button-row">
+            <ui:Button name="settings-button" text="⚙ SETTINGS" class="menu-button" />
+            <ui:Button name="quit-button" text="QUIT" class="menu-button" />
+        </ui:VisualElement>
         <ui:Label name="model-status" text="" class="model-status" />
-        <ui:Button name="quit-button" text="QUIT" class="quit-button" />
+
+        <ui:VisualElement name="settings-overlay" class="settings-overlay hidden">
+            <ui:VisualElement class="settings-card">
+                <ui:Label text="SETTINGS" class="settings-title" />
+                <ui:Label text="Music volume" class="setting-label" />
+                <ui:Slider name="music-slider" low-value="0" high-value="1" class="setting-slider" />
+                <ui:Label text="Mouse sensitivity" class="setting-label" />
+                <ui:Slider name="sensitivity-slider" low-value="0.3" high-value="3" class="setting-slider" />
+                <ui:Toggle name="voice-toggle" label="NPC voices (Windows TTS)" class="setting-toggle" />
+                <ui:Button name="settings-close" text="DONE" class="menu-button close-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

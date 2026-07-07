@@ -254,7 +254,7 @@ namespace TalkOut.EditorTools
                 "Assets/GameData/Scenarios/TrafficStop/TrafficStop_Scenario.asset",
                 cameraGo, rig, raycaster,
                 "Hold V to talk  ·  Enter to type  ·  Click things in the car",
-                includeHarness: true);
+                includeHarness: true, musicStyle: MusicStyle.Night);
 
             var speaker = officer.AddComponent<NpcSpeaker>();
             speaker.actorDisplayName = "Officer Glazer";
@@ -492,7 +492,7 @@ namespace TalkOut.EditorTools
                 "Assets/GameData/Scenarios/Date/Date_Scenario.asset",
                 cameraGo, rig, raycaster,
                 "Hold V to talk  ·  Enter to type  ·  Click things on the table",
-                includeHarness: false);
+                includeHarness: false, musicStyle: MusicStyle.Romantic);
 
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/Date.unity");
             Debug.Log("[TalkOut] Date scene built.");
@@ -524,12 +524,70 @@ namespace TalkOut.EditorTools
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
+            // live diorama behind the menu: the traffic stop, lights flashing
+            RenderSettings.skybox = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/NightSky.mat");
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.15f, 0.17f, 0.27f);
+            RenderSettings.ambientEquatorColor = new Color(0.10f, 0.11f, 0.16f);
+            RenderSettings.ambientGroundColor = new Color(0.05f, 0.06f, 0.08f);
+
+            var moon = new GameObject("Moonlight").AddComponent<Light>();
+            moon.type = LightType.Directional;
+            moon.intensity = 0.45f;
+            moon.color = new Color(0.62f, 0.70f, 0.98f);
+            moon.shadows = LightShadows.Soft;
+            moon.transform.rotation = Quaternion.Euler(46f, -34f, 0f);
+            RenderSettings.sun = moon;
+
+            var diorama = new GameObject("Diorama").transform;
+            Prim(PrimitiveType.Plane, "Ground", diorama, new Vector3(0, -0.02f, 0), new Vector3(10, 1, 10), "Ground_Night");
+            Prim(PrimitiveType.Cube, "Road", diorama, new Vector3(0, -0.005f, 0), new Vector3(7f, 0.02f, 60f), "Asphalt");
+
+            var menuCar = new GameObject("MenuCar").transform;
+            menuCar.SetParent(diorama, false);
+            menuCar.position = new Vector3(0.8f, 0, 1.5f);
+            Prim(PrimitiveType.Cube, "Body", menuCar, new Vector3(0, 0.5f, 0), new Vector3(1.7f, 0.5f, 3.6f), "Car_Rust");
+            Prim(PrimitiveType.Cube, "Roof", menuCar, new Vector3(0, 1.3f, -0.25f), new Vector3(1.5f, 0.55f, 1.9f), "Car_Rust");
+            foreach (var (x, z) in new[] { (-0.95f, 1.25f), (0.95f, 1.25f), (-0.95f, -1.25f), (0.95f, -1.25f) })
+            {
+                Prim(PrimitiveType.Cube, "Wheel", menuCar, new Vector3(x, 0.26f, z), new Vector3(0.22f, 0.52f, 0.52f), "Wheel_Black");
+            }
+
+            var menuPolice = new GameObject("MenuPolice").transform;
+            menuPolice.SetParent(diorama, false);
+            menuPolice.position = new Vector3(1.2f, 0, -4.5f);
+            Prim(PrimitiveType.Cube, "Body", menuPolice, new Vector3(0, 0.55f, 0), new Vector3(1.8f, 0.55f, 3.9f), "Car_Police");
+            Prim(PrimitiveType.Cube, "Cabin", menuPolice, new Vector3(0, 1.12f, -0.3f), new Vector3(1.6f, 0.6f, 1.8f), "Car_White");
+            var redCube = Prim(PrimitiveType.Cube, "RedLamp", menuPolice, new Vector3(-0.28f, 1.55f, -0.3f), new Vector3(0.36f, 0.2f, 0.36f), "LightBar_Red");
+            var blueCube = Prim(PrimitiveType.Cube, "BlueLamp", menuPolice, new Vector3(0.28f, 1.55f, -0.3f), new Vector3(0.36f, 0.2f, 0.36f), "LightBar_Blue");
+            var redLight = MakeLight(menuPolice, "RedLight", new Vector3(-0.28f, 1.9f, -0.3f), Color.red, 3f, 14f);
+            var blueLight = MakeLight(menuPolice, "BlueLight", new Vector3(0.28f, 1.9f, -0.3f), Color.blue, 3f, 14f);
+            var menuLights = menuPolice.gameObject.AddComponent<PoliceLights>();
+            menuLights.redLight = redLight;
+            menuLights.blueLight = blueLight;
+            menuLights.redCube = redCube.GetComponent<Renderer>();
+            menuLights.blueCube = blueCube.GetComponent<Renderer>();
+
+            // the officer, wobbling patiently in the background
+            var menuOfficer = BuildCharacter("MenuOfficer", "menu_officer",
+                "Skin_Officer", "Uniform_Navy", "Officer", standing: true, hatMat: "Uniform_Navy");
+            menuOfficer.transform.position = new Vector3(-0.9f, 0, 0.2f);
+            menuOfficer.transform.rotation = Quaternion.Euler(0, 120f, 0);
+
             var cameraGo = new GameObject("Main Camera");
             cameraGo.tag = "MainCamera";
             var camera = cameraGo.AddComponent<Camera>();
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.05f, 0.055f, 0.09f);
+            camera.clearFlags = CameraClearFlags.Skybox;
+            camera.fieldOfView = 46f;
+            cameraGo.transform.position = new Vector3(-4.6f, 2.0f, 4.4f);
+            cameraGo.transform.rotation = Quaternion.LookRotation(
+                new Vector3(0.4f, 0.9f, -1.2f) - cameraGo.transform.position);
             cameraGo.AddComponent<AudioListener>();
+            SetupPostProcessing(cameraGo);
+
+            var musicGo = new GameObject("Music");
+            musicGo.AddComponent<AudioSource>();
+            musicGo.AddComponent<MusicPlayer>().style = MusicStyle.Menu;
 
             var uiGo = new GameObject("UI");
             var uiDoc = uiGo.AddComponent<UIDocument>();
@@ -584,9 +642,15 @@ namespace TalkOut.EditorTools
 
         private static TurnController WireGameSystems(
             string scenarioPath, GameObject cameraGo, FirstPersonRig rig,
-            InteractionRaycaster raycaster, string micHint, bool includeHarness)
+            InteractionRaycaster raycaster, string micHint, bool includeHarness,
+            MusicStyle musicStyle = MusicStyle.Night)
         {
             var systems = new GameObject("Systems");
+
+            var musicGo = new GameObject("Music");
+            musicGo.transform.SetParent(systems.transform);
+            musicGo.AddComponent<AudioSource>();
+            musicGo.AddComponent<MusicPlayer>().style = musicStyle;
             var turnController = systems.AddComponent<TurnController>();
             var gameManager = systems.AddComponent<GameManager>();
             var propRegistry = systems.AddComponent<PropRegistry>();

@@ -2,7 +2,7 @@
     flex-grow: 1;
     justify-content: center;
     align-items: center;
-    background-color: rgb(12, 14, 22);
+    background-color: rgba(8, 10, 18, 0.55); /* diorama shows through */
 }
 
 .tagline {
@@ -22,6 +22,7 @@
     -unity-font-style: bold;
     color: rgb(248, 246, 240);
     letter-spacing: 4px;
+    text-shadow: 4px 4px 0 rgb(0, 0, 0);
 }
 
 .subtitle {
@@ -33,29 +34,44 @@
     border-width: 2px;
     border-color: rgb(0, 0, 0);
     padding: 5px 16px;
-    margin-bottom: 36px;
+    margin-bottom: 14px;
+}
+
+.total-score {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+    background-color: rgba(8, 8, 10, 0.9);
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
+    padding: 6px 18px;
+    margin-bottom: 18px;
 }
 
 .levels {
     align-items: stretch;
-    min-width: 560px;
+    min-width: 640px;
 }
 
 .level-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgb(8, 8, 10);
+    background-color: rgba(8, 8, 10, 0.92);
     border-radius: 14px;
     border-width: 2px;
     border-color: rgb(60, 64, 78);
-    padding: 14px 20px;
-    margin: 7px 0;
+    padding: 12px 20px;
+    margin: 6px 0;
 }
 
 .level-card:hover {
     border-color: rgb(245, 197, 24);
-    background-color: rgb(16, 17, 24);
+    background-color: rgba(16, 17, 24, 0.95);
+}
+
+.level-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .level-name {
@@ -71,22 +87,47 @@
 }
 
 .level-stats {
-    font-size: 14px;
+    font-size: 15px;
     -unity-font-style: bold;
     color: rgb(245, 197, 24);
     -unity-text-align: middle-right;
 }
 
-.model-status {
-    margin-top: 26px;
-    font-size: 13px;
-    color: rgb(120, 190, 140);
+.run-row {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 3px;
+    padding: 2px 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
 }
 
-.quit-button {
-    margin-top: 12px;
-    width: 160px;
-    height: 40px;
+.run-rank {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+    min-width: 26px;
+}
+
+.run-detail {
+    font-size: 13px;
+    color: rgb(200, 206, 222);
+}
+
+.run-score {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(248, 246, 240);
+}
+
+.button-row {
+    flex-direction: row;
+    margin-top: 18px;
+}
+
+.menu-button {
+    width: 180px;
+    height: 42px;
     font-size: 15px;
     -unity-font-style: bold;
     border-radius: 10px;
@@ -94,8 +135,74 @@
     border-color: rgb(0, 0, 0);
     background-color: rgb(50, 54, 66);
     color: rgb(240, 240, 245);
+    margin: 0 6px;
 }
 
-.quit-button:hover {
+.menu-button:hover {
     background-color: rgb(70, 74, 88);
+}
+
+.model-status {
+    margin-top: 16px;
+    font-size: 13px;
+    color: rgb(120, 190, 140);
+    background-color: rgba(8, 8, 10, 0.8);
+    border-radius: 8px;
+    padding: 3px 10px;
+}
+
+.settings-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-card {
+    width: 440px;
+    padding: 26px;
+    background-color: rgb(14, 14, 18);
+    border-radius: 16px;
+    border-width: 3px;
+    border-color: rgb(245, 197, 24);
+}
+
+.settings-title {
+    font-size: 26px;
+    -unity-font-style: bold;
+    color: rgb(248, 246, 240);
+    -unity-text-align: middle-center;
+    margin-bottom: 16px;
+}
+
+.setting-label {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(210, 214, 226);
+    margin-top: 10px;
+}
+
+.setting-slider {
+    margin: 6px 0;
+}
+
+.setting-toggle {
+    margin-top: 14px;
+    font-size: 15px;
+    color: rgb(210, 214, 226);
+}
+
+.close-button {
+    align-self: center;
+    margin-top: 20px;
+    background-color: rgb(245, 197, 24);
+    color: rgb(16, 16, 18);
+}
+
+.hidden {
+    display: none;
 }

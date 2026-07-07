@@ -40,6 +40,7 @@ namespace TalkOut.Audio
 
         private void OnEvent(GameEvent gameEvent)
         {
+            if (!GameSettings.VoiceEnabled) return;
             if (gameEvent.kind == EventKind.NpcSaid && gameEvent.actor == actorDisplayName)
             {
                 voice.Speak(gameEvent.text);

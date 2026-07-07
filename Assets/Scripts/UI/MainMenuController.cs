@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using TalkOut.Core;
 using TalkOut.Data;
 using TalkOut.Save;
 
@@ -29,12 +30,17 @@ namespace TalkOut.UI
             var root = GetComponent<UIDocument>().rootVisualElement;
             root.Q<Button>("quit-button").clicked += Application.Quit;
 
-            var levelsHost = root.Q<VisualElement>("levels");
             var save = SaveSystem.Load();
+            root.Q<Label>("total-score").text =
+                $"TOTAL SCORE  <color=#FFFFFF>{save.TotalScore:N0}</color>";
+
+            var levelsHost = root.Q<VisualElement>("levels");
             foreach (var level in levels)
             {
                 levelsHost.Add(BuildLevelCard(level, save));
             }
+
+            WireSettings(root);
 
             var modelStatus = root.Q<Label>("model-status");
             if (llmConfig != null)
@@ -54,6 +60,8 @@ namespace TalkOut.UI
             var card = new VisualElement();
             card.AddToClassList("level-card");
 
+            var header = new VisualElement();
+            header.AddToClassList("level-header");
             var left = new VisualElement();
             var name = new Label(level.title);
             name.AddToClassList("level-name");
@@ -61,26 +69,64 @@ namespace TalkOut.UI
             desc.AddToClassList("level-desc");
             left.Add(name);
             left.Add(desc);
-            card.Add(left);
+            header.Add(left);
 
-            var stats = new Label(StatsFor(level.scenarioId, save));
+            save.scenarios.TryGetValue(level.scenarioId, out var record);
+            var stats = new Label(record != null && record.timesPlayed > 0
+                ? $"BEST {record.BestScore:N0}\n{record.timesWon}/{record.timesPlayed} wins"
+                : "NEW");
             stats.AddToClassList("level-stats");
-            card.Add(stats);
+            header.Add(stats);
+            card.Add(header);
+
+            // local leaderboard: top runs
+            if (record != null && record.topRuns.Count > 0)
+            {
+                for (int i = 0; i < record.topRuns.Count; i++)
+                {
+                    var run = record.topRuns[i];
+                    var row = new VisualElement();
+                    row.AddToClassList("run-row");
+                    var rank = new Label($"#{i + 1}");
+                    rank.AddToClassList("run-rank");
+                    var detail = new Label($"{FormatTime(run.timeSeconds)}  ·  {run.turns} lines  ·  {run.when}");
+                    detail.AddToClassList("run-detail");
+                    var score = new Label($"{run.score:N0}");
+                    score.AddToClassList("run-score");
+                    row.Add(rank);
+                    row.Add(detail);
+                    row.Add(score);
+                    card.Add(row);
+                }
+            }
 
             card.RegisterCallback<ClickEvent>(_ => SceneManager.LoadScene(level.sceneName));
             return card;
         }
 
-        private static string StatsFor(string scenarioId, SaveData save)
+        private void WireSettings(VisualElement root)
         {
-            if (save.scenarios.TryGetValue(scenarioId, out var record) && record.timesPlayed > 0)
-            {
-                string best = record.bestTimeSeconds > 0f
-                    ? $"⏱ best {(int)record.bestTimeSeconds / 60}:{(int)record.bestTimeSeconds % 60:00}"
-                    : "no win yet";
-                return $"{record.timesWon}/{record.timesPlayed} wins\n{best}";
-            }
-            return "NEW";
+            var overlay = root.Q<VisualElement>("settings-overlay");
+            var music = root.Q<Slider>("music-slider");
+            var sensitivity = root.Q<Slider>("sensitivity-slider");
+            var voice = root.Q<Toggle>("voice-toggle");
+
+            music.value = GameSettings.MusicVolume;
+            sensitivity.value = GameSettings.MouseSensitivity;
+            voice.value = GameSettings.VoiceEnabled;
+
+            music.RegisterValueChangedCallback(evt => GameSettings.MusicVolume = evt.newValue);
+            sensitivity.RegisterValueChangedCallback(evt => GameSettings.MouseSensitivity = evt.newValue);
+            voice.RegisterValueChangedCallback(evt => GameSettings.VoiceEnabled = evt.newValue);
+
+            root.Q<Button>("settings-button").clicked += () => overlay.style.display = DisplayStyle.Flex;
+            root.Q<Button>("settings-close").clicked += () => overlay.style.display = DisplayStyle.None;
+        }
+
+        private static string FormatTime(float seconds)
+        {
+            int total = Mathf.FloorToInt(seconds);
+            return $"{total / 60}:{total % 60:00}";
         }
     }
 }

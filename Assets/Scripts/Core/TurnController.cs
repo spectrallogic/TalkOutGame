@@ -35,6 +35,10 @@ namespace TalkOut.Core
         public float ElapsedSeconds { get; private set; }
         private bool timerRunning;
 
+        /// Filled at scene end, before SceneEnded fires.
+        public int LastRunScore { get; private set; }
+        public bool LastRunIsNewBest { get; private set; }
+
         public event Action<bool> ThinkingChanged;
         public event Action<string> PartialReply;
         public event Action<string> CopMoodChanged;
@@ -259,6 +263,9 @@ namespace TalkOut.Core
                 {
                     Phase = TurnPhase.SceneOver;
                     timerRunning = false;
+                    LastRunScore = Scoring.Compute(outcome.isWin, ElapsedSeconds, PlayerTurnsTaken);
+                    LastRunIsNewBest = Save.SaveSystem.RecordOutcome(
+                        Scenario.scenarioId, outcome, ElapsedSeconds, PlayerTurnsTaken, LastRunScore);
                     Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
                     SceneEnded?.Invoke(outcome);
                     return;

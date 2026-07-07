@@ -31,6 +31,7 @@ namespace TalkOut.UI
         private Label timerLabel;
         private VisualElement outcomeOverlay;
         private Label outcomeTitle;
+        private Label outcomeScore;
         private Label outcomeTime;
         private Label outcomeText;
 
@@ -53,6 +54,7 @@ namespace TalkOut.UI
             timerLabel = root.Q<Label>("timer");
             outcomeOverlay = root.Q<VisualElement>("outcome-overlay");
             outcomeTitle = root.Q<Label>("outcome-title");
+            outcomeScore = root.Q<Label>("outcome-score");
             outcomeTime = root.Q<Label>("outcome-time");
             outcomeText = root.Q<Label>("outcome-text");
             if (!string.IsNullOrEmpty(micHintText)) micStatus.text = micHintText;
@@ -258,7 +260,16 @@ namespace TalkOut.UI
         private void OnSceneEnded(OutcomeRule outcome)
         {
             outcomeTitle.text = (outcome.isWin ? "🎉 " : "🚨 ") + outcome.title;
-            outcomeTime.text = $"⏱ {FormatTime(turnController.ElapsedSeconds)}";
+            if (outcome.isWin)
+            {
+                outcomeScore.text = $"{turnController.LastRunScore:N0}" +
+                                    (turnController.LastRunIsNewBest ? "  ★ NEW BEST" : "");
+            }
+            else
+            {
+                outcomeScore.text = "";
+            }
+            outcomeTime.text = $"⏱ {FormatTime(turnController.ElapsedSeconds)}  ·  {turnController.PlayerTurnsTaken} lines";
             outcomeText.text = outcome.resultText;
             outcomeOverlay.style.display = DisplayStyle.Flex;
             if (firstPersonRig != null)

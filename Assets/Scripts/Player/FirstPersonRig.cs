@@ -37,8 +37,9 @@ namespace TalkOut.Player
                 return;
             }
 
-            yaw += Input.GetAxis("Mouse X") * sensitivity;
-            pitch -= Input.GetAxis("Mouse Y") * sensitivity;
+            float effective = sensitivity * Core.GameSettings.MouseSensitivity;
+            yaw += Input.GetAxis("Mouse X") * effective;
+            pitch -= Input.GetAxis("Mouse Y") * effective;
             yaw = Mathf.Clamp(yaw, -maxYaw, maxYaw);
             pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
