@@ -11,55 +11,76 @@ namespace TalkOut.Core
     public enum TurnPhase
     {
         NotStarted,
+        Intro,
         AwaitingInput,
-        Thinking,
+        CopThinking,
+        Judging,
         RunningActions,
         SceneOver
     }
 
-    /// The Referee's spine: player input -> director -> validated result ->
-    /// state deltas -> action queue -> outcome check. Owns all authoritative state.
+    /// The Referee's spine, v2. Freeform cop replies + a judge LLM that rules on
+    /// the outcome from the shared EventLog transcript. Player interactions
+    /// (clicking things in the car) flow through the same memory.
     public class TurnController : MonoBehaviour
     {
         public ScenarioDefinition Scenario { get; private set; }
         public SceneStateModel State { get; private set; }
+        public EventLog Log { get; private set; }
         public TurnPhase Phase { get; private set; } = TurnPhase.NotStarted;
-        public IReadOnlyList<DialogueLine> History => history;
         public int PlayerTurnsTaken { get; private set; }
-        public bool LastTurnWasFallback { get; private set; }
+        public JudgeVerdict LastVerdict { get; private set; }
 
-        public event Action<DialogueLine> LineAdded;
         public event Action<bool> ThinkingChanged;
         public event Action<string> PartialReply;
-        public event Action StateChanged;
+        public event Action<string> CopMoodChanged;
         public event Action<OutcomeRule> SceneEnded;
 
-        [Tooltip("How many recent lines are sent to the director as history")]
-        public int historyWindowSize = 6;
-
-        [Tooltip("Beat pacing when no 3D performer is attached")]
-        public float defaultBeatSeconds = 0.6f;
-
-        private readonly List<DialogueLine> history = new List<DialogueLine>();
-        private IDirector director;
+        private ICopBrain copBrain;
+        private IJudge judge;
         private ISceneActionPerformer performer;
+        private string npcDisplayName = "Officer";
 
-        public void Initialize(ScenarioDefinition scenario, IDirector director, ISceneActionPerformer performer = null)
+        public void Initialize(ScenarioDefinition scenario, ICopBrain copBrain, IJudge judge,
+            ISceneActionPerformer performer)
         {
             Scenario = scenario;
-            this.director = director;
+            this.copBrain = copBrain;
+            this.judge = judge;
             this.performer = performer;
             State = new SceneStateModel(scenario);
-            history.Clear();
+            Log = new EventLog();
             PlayerTurnsTaken = 0;
-            Phase = TurnPhase.AwaitingInput;
 
-            AddLine(new DialogueLine(LineKind.System, "", scenario.sceneDescription));
-            AddLine(new DialogueLine(LineKind.System, "", $"Goal: {scenario.playerGoal}"));
-            StateChanged?.Invoke();
+            var npc = scenario.GetNpc(scenario.respondingNpcId);
+            if (npc != null) npcDisplayName = npc.displayName;
+
+            _ = BeginSceneAsync();
         }
 
-        public void SetPerformer(ISceneActionPerformer newPerformer) => performer = newPerformer;
+        private async Task BeginSceneAsync()
+        {
+            Phase = TurnPhase.Intro;
+            Log.Add(EventKind.System, "", Scenario.sceneDescription);
+            Log.Add(EventKind.System, "", $"Goal: {Scenario.playerGoal}   (hold V to talk, or press Enter to type)");
+
+            try
+            {
+                // Officer approaches while the model warms up behind the beat.
+                var approach = Scenario.GetAction("OfficerWalkToDriverWindow");
+                if (approach != null && performer != null)
+                {
+                    Log.Add(EventKind.SceneBeat, "", approach.narrationText);
+                    await performer.PerformAsync(approach);
+                }
+                await copBrain.WarmupAsync();
+            }
+            catch (Exception e) { Debug.LogException(e); }
+
+            if (this == null) return;
+            Log.Add(EventKind.NpcSaid, npcDisplayName, Scenario.openerLine);
+            Phase = TurnPhase.AwaitingInput;
+        }
 
         public List<ActionDefinition> ComputeAvailableActions()
         {
@@ -68,106 +89,133 @@ namespace TalkOut.Core
                 .ToList();
         }
 
-        /// UI entry point. Fire-and-forget by design; all failures are contained.
-        public async void SubmitPlayerInput(string text)
+        /// Entry point for both voice-transcribed and typed player speech.
+        public async void SubmitPlayerUtterance(string text)
         {
             if (Phase != TurnPhase.AwaitingInput || string.IsNullOrWhiteSpace(text)) return;
             try
             {
-                await RunTurnAsync(text.Trim());
+                await RunSpeechTurnAsync(text.Trim());
             }
+            catch (OperationCanceledException) { }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                Phase = TurnPhase.AwaitingInput; // never soft-lock the game
+                Phase = TurnPhase.AwaitingInput; // never soft-lock
             }
         }
 
-        private async Task RunTurnAsync(string playerInput)
+        /// Entry point for clickable interactables. Always recorded in memory;
+        /// the cop only gets a chance to react when the scene is idle.
+        public async void ReportPlayerInteraction(string eventText, bool copMayReact = true)
         {
-            PlayerTurnsTaken++;
-            AddLine(new DialogueLine(LineKind.Player, "You", playerInput));
+            Log.Add(EventKind.PlayerAction, "", eventText);
+            if (!copMayReact || Phase != TurnPhase.AwaitingInput) return;
 
-            var request = new DirectorRequest
-            {
-                Scenario = Scenario,
-                State = State,
-                AvailableActions = ComputeAvailableActions(),
-                HistoryWindow = history.Where(l => l.kind == LineKind.Player || l.kind == LineKind.Npc)
-                                       .TakeLast(historyWindowSize).ToList(),
-                PlayerInput = playerInput,
-                RespondingNpc = Scenario.GetNpc(Scenario.respondingNpcId)
-            };
-
-            Phase = TurnPhase.Thinking;
-            ThinkingChanged?.Invoke(true);
-
-            DirectorResult result;
             try
             {
-                result = await director.DirectAsync(
-                    request, p => PartialReply?.Invoke(p), destroyCancellationToken);
+                Phase = TurnPhase.CopThinking;
+                ThinkingChanged?.Invoke(true);
+                string reaction = await copBrain.ReactToEventAsync(
+                    Log, eventText, p => PartialReply?.Invoke(p), destroyCancellationToken);
+                if (this == null) return;
+                ThinkingChanged?.Invoke(false);
+
+                if (!string.IsNullOrEmpty(reaction))
+                {
+                    Log.Add(EventKind.NpcSaid, npcDisplayName, reaction);
+                    await RunJudgePassAsync();
+                }
+                else
+                {
+                    Phase = TurnPhase.AwaitingInput;
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                ThinkingChanged?.Invoke(false);
+                Phase = TurnPhase.AwaitingInput;
+            }
+        }
+
+        private async Task RunSpeechTurnAsync(string playerLine)
+        {
+            PlayerTurnsTaken++;
+            Log.Add(EventKind.PlayerSaid, "You", playerLine);
+
+            Phase = TurnPhase.CopThinking;
+            ThinkingChanged?.Invoke(true);
+            string reply = await copBrain.ReplyAsync(
+                Log, playerLine, p => PartialReply?.Invoke(p), destroyCancellationToken);
+            if (this == null) return;
+            ThinkingChanged?.Invoke(false);
+
+            Log.Add(EventKind.NpcSaid, npcDisplayName, reply);
+            await RunJudgePassAsync();
+        }
+
+        private async Task RunJudgePassAsync()
+        {
+            Phase = TurnPhase.Judging;
+            var available = ComputeAvailableActions();
+            JudgeVerdict verdict;
+            try
+            {
+                verdict = await judge.JudgeAsync(Log, available, destroyCancellationToken);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                result = FallbackLibrary.GetFallback(e.GetType().Name);
+                verdict = FallbackLibrary.GetVerdict(e.GetType().Name);
             }
+            if (this == null) return;
 
-            if (this == null) return; // scene torn down while awaiting
-            ThinkingChanged?.Invoke(false);
-            LastTurnWasFallback = result.IsFallback;
+            LastVerdict = verdict;
+            CopMoodChanged?.Invoke(verdict.CopMood);
 
-            // 1. LLM-proposed stat deltas (already validated + clamped).
-            foreach (var kv in result.StatChanges)
-            {
-                State.ApplyStatDelta(kv.Key, kv.Value);
-            }
-            StateChanged?.Invoke();
-
-            // 2. NPC reply.
-            string speaker = request.RespondingNpc != null ? request.RespondingNpc.displayName : "???";
-            AddLine(new DialogueLine(LineKind.Npc, speaker, result.NpcReply));
-
-            // 3. Action queue — engine effects + staged visual beats.
+            // Physical beats picked by the judge.
             Phase = TurnPhase.RunningActions;
-            string forcedOutcomeId = null;
-            foreach (var actionId in result.ActionIds)
+            string endsSceneOutcomeId = null;
+            foreach (var actionId in verdict.ActionIds)
             {
                 var action = Scenario.GetAction(actionId);
                 if (action == null) continue;
 
                 ApplyEngineEffects(action);
-                if (action.endsScene && forcedOutcomeId == null)
-                {
-                    forcedOutcomeId = action.outcomeId;
-                }
+                if (action.endsScene && endsSceneOutcomeId == null) endsSceneOutcomeId = action.outcomeId;
 
                 if (!string.IsNullOrEmpty(action.narrationText))
                 {
-                    AddLine(new DialogueLine(LineKind.Beat, "", action.narrationText));
+                    Log.Add(EventKind.SceneBeat, "", action.narrationText);
                 }
-
                 if (performer != null)
                 {
                     await performer.PerformAsync(action);
-                }
-                else
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(defaultBeatSeconds), destroyCancellationToken);
+                    if (this == null) return;
                 }
             }
-            StateChanged?.Invoke();
 
-            // 4. Outcome check — code and data only.
-            var outcome = OutcomeEvaluator.Evaluate(Scenario, State, PlayerTurnsTaken, forcedOutcomeId);
-            if (outcome != null)
+            // Outcome resolution: judge verdict first, then scene-ending actions, then turn cap.
+            string outcomeId = null;
+            if (verdict.Released) outcomeId = "talked_out";
+            else if (verdict.Arrested) outcomeId = "arrest";
+            else if (endsSceneOutcomeId != null) outcomeId = endsSceneOutcomeId;
+            else if (PlayerTurnsTaken >= Scenario.maxTurns) outcomeId = Scenario.maxTurnsOutcomeId;
+
+            if (outcomeId != null)
             {
-                Phase = TurnPhase.SceneOver;
-                AddLine(new DialogueLine(LineKind.System, "", $"{outcome.title} — {outcome.resultText}"));
-                SceneEnded?.Invoke(outcome);
-                return;
+                var outcome = Scenario.GetOutcome(outcomeId);
+                if (outcome != null)
+                {
+                    Phase = TurnPhase.SceneOver;
+                    Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
+                    SceneEnded?.Invoke(outcome);
+                    return;
+                }
+                Debug.LogError($"[TurnController] Unknown outcome id '{outcomeId}'");
             }
 
             Phase = TurnPhase.AwaitingInput;
@@ -190,17 +238,10 @@ namespace TalkOut.Core
                         break;
                 }
             }
-
             if (!string.IsNullOrEmpty(action.moveToLocationId) && !string.IsNullOrEmpty(action.actorId))
             {
                 State.SetLocation(action.actorId, action.moveToLocationId);
             }
-        }
-
-        private void AddLine(DialogueLine line)
-        {
-            history.Add(line);
-            LineAdded?.Invoke(line);
         }
     }
 }

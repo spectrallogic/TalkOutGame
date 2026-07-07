@@ -1,4 +1,12 @@
-# LLM Models (not in git)
+# Models (not in git)
+
+## Speech-to-text: Whisper base.en (~148 MB)
+
+```
+curl -L -o ggml-base.en.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
+```
+
+# LLM Models
 
 GGUF model files live here in dev and are bundled into builds from here.
 They are gitignored — download manually:

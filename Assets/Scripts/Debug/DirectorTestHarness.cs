@@ -6,10 +6,9 @@ using TalkOut.Core;
 
 namespace TalkOut.Debugging
 {
-    /// Runs a scripted corpus of player inputs through the REAL turn loop and
-    /// logs every turn (raw director output, applied deltas, state, latency).
-    /// Press F9 in play mode, or enable autoRunOnStart. Proves M1 (mock) and
-    /// M2 (grammar: zero parse failures, zero out-of-catalog actions).
+    /// F9: runs the scripted corpus through the REAL loop (cop + judge) and
+    /// logs each exchange, the verdicts, and latency. Proves the judge can't
+    /// be prompt-injected into releasing the player.
     public class DirectorTestHarness : MonoBehaviour
     {
         public TurnController turnController;
@@ -43,15 +42,13 @@ namespace TalkOut.Debugging
             running = true;
             var log = new StringBuilder();
             log.AppendLine($"=== TalkOut harness run {System.DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
-            var lines = corpus.text.Split('\n');
             int turn = 0;
 
-            foreach (var rawLine in lines)
+            foreach (var rawLine in corpus.text.Split('\n'))
             {
                 var input = rawLine.Trim();
                 if (string.IsNullOrEmpty(input) || input.StartsWith("#")) continue;
 
-                // Wait for the controller to accept input (or stop if scene ended).
                 while (turnController.Phase != TurnPhase.AwaitingInput)
                 {
                     if (turnController.Phase == TurnPhase.SceneOver) goto done;
@@ -61,26 +58,31 @@ namespace TalkOut.Debugging
 
                 turn++;
                 float start = Time.realtimeSinceStartup;
-                int historyBefore = turnController.History.Count;
-                turnController.SubmitPlayerInput(input);
+                int eventsBefore = turnController.Log.Events.Count;
+                turnController.SubmitPlayerUtterance(input);
 
-                while (turnController.Phase == TurnPhase.Thinking ||
-                       turnController.Phase == TurnPhase.RunningActions)
+                // Wait for the full turn (cop + judge + actions) to finish.
+                await Task.Delay(200);
+                while (turnController.Phase != TurnPhase.AwaitingInput &&
+                       turnController.Phase != TurnPhase.SceneOver)
                 {
                     await Task.Delay(100);
                     if (this == null) return;
                 }
 
-                float elapsed = Time.realtimeSinceStartup - start;
-                log.AppendLine($"--- turn {turn} ({elapsed:0.0}s) ---");
-                log.AppendLine($"input: {input}");
-                for (int i = historyBefore; i < turnController.History.Count; i++)
+                log.AppendLine($"--- turn {turn} ({Time.realtimeSinceStartup - start:0.0}s) ---");
+                for (int i = eventsBefore; i < turnController.Log.Events.Count; i++)
                 {
-                    var line = turnController.History[i];
-                    log.AppendLine($"  [{line.kind}] {line.speaker}: {line.text}");
+                    var e = turnController.Log.Events[i];
+                    log.AppendLine($"  [{e.kind}] {e.actor}: {e.text}");
                 }
-                log.AppendLine($"fallback: {turnController.LastTurnWasFallback}");
-                log.AppendLine($"state: {turnController.State.Snapshot()}");
+                var verdict = turnController.LastVerdict;
+                if (verdict != null)
+                {
+                    log.AppendLine($"  verdict: released={verdict.Released} arrested={verdict.Arrested} " +
+                                   $"mood={verdict.CopMood} actions=[{string.Join(",", verdict.ActionIds)}] " +
+                                   $"fallback={verdict.IsFallback}");
+                }
 
                 if (turnController.Phase == TurnPhase.SceneOver) break;
             }

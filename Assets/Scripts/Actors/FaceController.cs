@@ -26,6 +26,11 @@ namespace TalkOut.Actors
             ScheduleNextBlink();
         }
 
+        private void Start()
+        {
+            SetFace(currentEmotion); // apply the default face immediately
+        }
+
         public void SetFace(string emotion)
         {
             currentEmotion = emotion;

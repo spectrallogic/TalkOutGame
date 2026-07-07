@@ -1,32 +1,37 @@
-using System.Collections.Generic;
-
 namespace TalkOut.Directing
 {
-    /// In-fiction canned replies used whenever the real director fails
-    /// (timeout, parse error, model missing). The turn always completes.
+    /// In-fiction canned material used whenever an LLM call fails
+    /// (timeout, model missing). The scene always keeps moving.
     public static class FallbackLibrary
     {
         private static int next;
 
-        private static readonly List<string> Lines = new List<string>
+        private static readonly string[] CopLines =
         {
-            "The officer stares at you, blinking slowly.",
-            "The officer opens his mouth, thinks better of it, and adjusts his belt instead.",
-            "A long silence. Somewhere, a cricket files a noise complaint.",
-            "The officer squints at you like you're an eye chart he can't read.",
-            "The officer taps his pen against his notepad, saying nothing."
+            "Uh-huh. Say that again, slower.",
+            "Sir, I've been doing this for twenty-two years. Try me.",
+            "That's... something. License and registration.",
+            "I'm going to pretend I didn't hear that.",
+            "Interesting. The radar gun disagrees."
         };
 
-        public static DirectorResult GetFallback(string reason)
+        public static string GetCopLine(string reason)
         {
-            var result = new DirectorResult
+            UnityEngine.Debug.LogWarning($"[Fallback] Cop line used: {reason}");
+            return CopLines[next++ % CopLines.Length];
+        }
+
+        public static JudgeVerdict GetVerdict(string reason)
+        {
+            UnityEngine.Debug.LogWarning($"[Fallback] Judge verdict used: {reason}");
+            return new JudgeVerdict
             {
-                NpcReply = Lines[next % Lines.Count],
+                Released = false,
+                Arrested = false,
+                CopMood = "confused",
                 IsFallback = true,
                 RawOutput = $"[fallback: {reason}]"
             };
-            next++;
-            return result;
         }
     }
 }

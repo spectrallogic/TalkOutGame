@@ -15,6 +15,12 @@ namespace TalkOut.Data
         [TextArea(2, 4)] public string playerGoal;
         [TextArea(3, 8)] public string comedyRules;
 
+        [Tooltip("Fixed line the main NPC always opens the scene with")]
+        [TextArea(2, 4)] public string openerLine;
+
+        [Tooltip("Instructions for the judge LLM: what counts as the player winning (released) or losing (arrested)")]
+        [TextArea(3, 8)] public string judgeGuidance;
+
         [Tooltip("Primary NPC the reply is voiced by (the LLM may still narrate others via actions)")]
         public string respondingNpcId = "officer";
 

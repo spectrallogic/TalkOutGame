@@ -1,109 +1,85 @@
 .root {
     flex-grow: 1;
-    justify-content: flex-end;
-    align-items: center;
 }
 
-.dialogue-panel {
-    width: 62%;
-    min-width: 560px;
-    max-width: 980px;
-    margin-bottom: 14px;
-    padding: 10px 14px 12px 14px;
-    background-color: rgba(12, 14, 22, 0.86);
-    border-radius: 12px;
-    border-width: 1px;
-    border-color: rgba(120, 140, 190, 0.35);
+.crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    margin-top: -3px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.75);
 }
 
-.header {
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 6px;
+.interact-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 54%;
+    -unity-text-align: middle-center;
+    font-size: 15px;
+    color: rgb(255, 230, 140);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
 }
 
-.portrait {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background-color: rgb(40, 46, 66);
-    border-width: 1px;
-    border-color: rgba(120, 140, 190, 0.5);
-    margin-right: 10px;
-}
-
-.speaker-name {
-    font-size: 16px;
-    -unity-font-style: bold;
-    color: rgb(220, 226, 240);
-}
-
-.thinking {
-    margin-left: 12px;
-    font-size: 13px;
-    -unity-font-style: italic;
-    color: rgb(140, 200, 255);
+.chat-panel {
+    position: absolute;
+    left: 18px;
+    bottom: 64px;
+    width: 44%;
+    min-width: 420px;
+    max-width: 700px;
 }
 
 .history {
-    max-height: 260px;
-    min-height: 120px;
-    margin-bottom: 8px;
+    max-height: 300px;
 }
 
 .line {
     white-space: normal;
-    margin: 2px 4px;
-    padding: 6px 10px;
+    margin: 2px 0;
+    padding: 5px 10px;
     border-radius: 8px;
     font-size: 14px;
+    align-self: flex-start;
+    max-width: 95%;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
 .line-player {
-    align-self: flex-end;
-    background-color: rgb(40, 84, 60);
-    color: rgb(228, 245, 232);
-    max-width: 80%;
+    background-color: rgba(30, 70, 46, 0.82);
+    color: rgb(224, 245, 230);
 }
 
 .line-npc {
-    align-self: flex-start;
-    background-color: rgb(44, 52, 78);
-    color: rgb(230, 234, 246);
-    max-width: 85%;
+    background-color: rgba(28, 36, 62, 0.85);
+    color: rgb(232, 236, 248);
 }
 
 .line-beat {
-    align-self: center;
     -unity-font-style: italic;
-    color: rgb(160, 168, 190);
-    background-color: rgba(0, 0, 0, 0);
+    color: rgb(190, 196, 214);
+    background-color: rgba(0, 0, 0, 0.35);
     font-size: 13px;
 }
 
 .line-system {
-    align-self: center;
-    color: rgb(200, 190, 140);
-    background-color: rgba(60, 56, 30, 0.5);
-    max-width: 92%;
+    color: rgb(216, 205, 150);
+    background-color: rgba(50, 46, 24, 0.6);
     font-size: 13px;
 }
 
 .input-row {
     flex-direction: row;
     align-items: center;
-}
-
-.mic-button {
-    width: 38px;
-    height: 34px;
-    border-radius: 8px;
-    opacity: 0.35;
+    margin-top: 6px;
 }
 
 .input-field {
     flex-grow: 1;
-    margin: 0 8px;
     height: 34px;
     font-size: 14px;
 }
@@ -111,13 +87,44 @@
 .submit-button {
     height: 34px;
     border-radius: 8px;
-    padding: 0 16px;
+    padding: 0 14px;
+    margin-left: 6px;
     background-color: rgb(66, 108, 210);
     color: white;
 }
 
-.submit-button:hover {
-    background-color: rgb(86, 128, 230);
+.status-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 16px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.thinking {
+    font-size: 14px;
+    -unity-font-style: italic;
+    color: rgb(140, 200, 255);
+    margin-right: 16px;
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
+
+.mic-status {
+    font-size: 13px;
+    color: rgba(230, 234, 246, 0.75);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
+
+.mic-status.listening {
+    color: rgb(120, 255, 140);
+    -unity-font-style: bold;
+}
+
+.mic-status.transcribing {
+    color: rgb(255, 210, 120);
+    -unity-font-style: italic;
 }
 
 .outcome-overlay {
@@ -132,7 +139,7 @@
 }
 
 .outcome-card {
-    width: 460px;
+    width: 480px;
     padding: 26px;
     background-color: rgb(18, 22, 34);
     border-radius: 14px;

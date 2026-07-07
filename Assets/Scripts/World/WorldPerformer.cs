@@ -2,20 +2,17 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using TalkOut.Actors;
-using TalkOut.CameraRig;
 using TalkOut.Core;
 using TalkOut.Data;
 using TalkOut.Props;
 
 namespace TalkOut.World
 {
-    /// Plays the physical side of director actions: camera focus, walking,
-    /// gestures, face overrides, prop pulses. Also keeps ambient expressions
-    /// in sync with hidden state so the player can read the officer's mood.
+    /// Plays the physical side of judge-picked actions (walking, prop pulses,
+    /// wobble flails, face overrides) and applies the judge's cop-mood to faces.
     public class WorldPerformer : MonoBehaviour, ISceneActionPerformer
     {
         public TurnController turnController;
-        public CameraDirector cameraDirector;
         public PropRegistry propRegistry;
 
         private readonly Dictionary<string, NPCActor> actors = new Dictionary<string, NPCActor>();
@@ -37,16 +34,35 @@ namespace TalkOut.World
         {
             if (turnController != null)
             {
-                turnController.StateChanged += UpdateAmbientExpressions;
+                turnController.CopMoodChanged += OnCopMood;
             }
-            UpdateAmbientExpressions();
         }
 
         private void OnDestroy()
         {
             if (turnController != null)
             {
-                turnController.StateChanged -= UpdateAmbientExpressions;
+                turnController.CopMoodChanged -= OnCopMood;
+            }
+        }
+
+        private void OnCopMood(string mood)
+        {
+            // Judge's mood ruling drives the main NPC's face; the passenger
+            // panics whenever things look bad for the car.
+            if (actors.TryGetValue("officer", out var officer) && officer.face != null)
+            {
+                officer.face.SetFace(mood);
+                if (officer.wobble != null && (mood == "angry" || mood == "amused"))
+                {
+                    officer.wobble.Impulse(0.7f);
+                }
+            }
+            if (actors.TryGetValue("passenger", out var passenger) && passenger.face != null)
+            {
+                bool bad = mood == "angry" || mood == "suspicious";
+                passenger.face.SetFace(bad ? "panicked" : "neutral");
+                if (bad && passenger.wobble != null) passenger.wobble.Impulse(1f);
             }
         }
 
@@ -55,55 +71,41 @@ namespace TalkOut.World
             NPCActor actor = null;
             if (!string.IsNullOrEmpty(action.actorId)) actors.TryGetValue(action.actorId, out actor);
 
-            bool didSomething = false;
-
-            if (actor != null)
+            if (actor != null && !string.IsNullOrEmpty(action.expressionOverride) && actor.face != null)
             {
-                if (cameraDirector != null) cameraDirector.FocusOn(actor.transform);
-                if (!string.IsNullOrEmpty(action.expressionOverride) && actor.face != null)
-                {
-                    actor.face.SetFace(action.expressionOverride);
-                }
+                actor.face.SetFace(action.expressionOverride);
             }
 
             if (actor != null && !string.IsNullOrEmpty(action.moveToLocationId) &&
                 locations.TryGetValue(action.moveToLocationId, out var point))
             {
                 await actor.WalkToAsync(point.transform);
-                didSomething = true;
+                if (this == null) return;
             }
 
             var prop = propRegistry != null ? propRegistry.Get(action.targetPropId) : null;
             if (prop != null)
             {
-                if (cameraDirector != null) cameraDirector.FocusOn(prop.transform);
                 await prop.UseAsync();
-                didSomething = true;
+                if (this == null) return;
             }
 
-            if (actor != null && actor.poser != null && !string.IsNullOrEmpty(action.animationKey))
+            // Physical emphasis: every action makes the body react.
+            if (actor != null && actor.wobble != null)
             {
-                await actor.poser.PlayPoseAsync(action.animationKey);
-                didSomething = true;
+                actor.wobble.Impulse(ImpulseFor(action.animationKey));
+                await Task.Delay(600);
             }
-
-            if (!didSomething)
-            {
-                await Task.Delay(400);
-            }
-
-            UpdateAmbientExpressions();
-            if (cameraDirector != null && actor != null) cameraDirector.FocusOn(actor.transform);
         }
 
-        private void UpdateAmbientExpressions()
+        private static float ImpulseFor(string animationKey)
         {
-            if (turnController == null || turnController.State == null) return;
-            foreach (var kv in actors)
+            switch (animationKey)
             {
-                if (kv.Value.face == null) continue;
-                kv.Value.face.SetFace(ExpressionMapper.Evaluate(
-                    kv.Key, turnController.State, turnController.LastTurnWasFallback));
+                case "panicShake": return 1f;
+                case "laugh": return 0.9f;
+                case "scribble": return 0.5f;
+                default: return 0.4f;
             }
         }
     }

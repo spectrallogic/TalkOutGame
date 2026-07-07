@@ -1,4 +1,6 @@
+using System.IO;
 using UnityEngine;
+using TalkOut.Audio;
 using TalkOut.Data;
 using TalkOut.Directing;
 using TalkOut.Props;
@@ -7,29 +9,29 @@ using TalkOut.World;
 
 namespace TalkOut.Core
 {
-    /// Scene bootstrapper: picks the director implementation, initializes the
-    /// turn controller, and kicks off model warmup.
+    /// Scene bootstrapper: picks real vs mock brains, initializes the turn
+    /// controller, wires TTS speakers to the event log, records outcomes.
     public class GameManager : MonoBehaviour
     {
         [Header("Data")]
         public ScenarioDefinition scenario;
         public LlmConfig llmConfig;
 
-        [Header("Director")]
-        [Tooltip("Use the keyword-based MockDirector instead of the local LLM")]
-        public bool useMockDirector = true;
+        [Header("Brains")]
+        [Tooltip("Force the no-model mock brains (also used automatically when the GGUF is missing)")]
+        public bool useMockBrains = false;
 
         [Header("Wiring")]
         public TurnController turnController;
-
-        public IDirector Director { get; private set; }
+        public LlmCopBrain llmCopBrain;
+        public LlmJudge llmJudge;
 
         private void Awake()
         {
             if (turnController == null) turnController = GetComponent<TurnController>();
         }
 
-        private async void Start()
+        private void Start()
         {
             if (scenario == null)
             {
@@ -37,41 +39,40 @@ namespace TalkOut.Core
                 return;
             }
 
-            Director = CreateDirector();
+            ICopBrain copBrain;
+            IJudge judge;
+            bool modelPresent = llmConfig != null && File.Exists(llmConfig.ResolveModelPath());
+
+            if (useMockBrains || !modelPresent || llmCopBrain == null || llmJudge == null)
+            {
+                if (!useMockBrains)
+                {
+                    Debug.LogWarning("[GameManager] LLM unavailable " +
+                        (modelPresent ? "(brains not wired)" : "(model file missing)") +
+                        " — using mock brains.");
+                }
+                copBrain = new MockCopBrain();
+                judge = new MockJudge();
+            }
+            else
+            {
+                llmCopBrain.Configure(scenario, llmConfig);
+                llmJudge.Configure(scenario, llmConfig);
+                copBrain = llmCopBrain;
+                judge = llmJudge;
+            }
+
             var performer = FindObjectOfType<WorldPerformer>();
-            turnController.Initialize(scenario, Director, performer);
+            turnController.Initialize(scenario, copBrain, judge, performer);
             turnController.SceneEnded += outcome => SaveSystem.RecordOutcome(scenario.scenarioId, outcome);
+
+            foreach (var speaker in FindObjectsOfType<NpcSpeaker>())
+            {
+                speaker.Attach(turnController.Log);
+            }
 
             var propRegistry = FindObjectOfType<PropRegistry>();
             if (propRegistry != null) propRegistry.ValidateCatalog(scenario);
-
-            // Warm the model up behind the intro beat so turn 1 isn't slow.
-            var warmupRequest = new DirectorRequest
-            {
-                Scenario = scenario,
-                State = turnController.State,
-                AvailableActions = turnController.ComputeAvailableActions(),
-                RespondingNpc = scenario.GetNpc(scenario.respondingNpcId)
-            };
-            await Director.WarmupAsync(warmupRequest);
-        }
-
-        private IDirector CreateDirector()
-        {
-            if (useMockDirector)
-            {
-                Debug.Log("[GameManager] Using MockDirector.");
-                return new MockDirector();
-            }
-
-            var llmDirector = GetComponent<LlmDirector>();
-            if (llmDirector == null)
-            {
-                Debug.LogWarning("[GameManager] No LlmDirector component found — falling back to MockDirector.");
-                return new MockDirector();
-            }
-            llmDirector.Configure(llmConfig);
-            return llmDirector;
         }
     }
 }

@@ -1,19 +1,23 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="Dialogue.uss" />
     <ui:VisualElement name="root" class="root">
-        <ui:VisualElement name="dialogue-panel" class="dialogue-panel">
-            <ui:VisualElement name="header" class="header">
-                <ui:VisualElement name="portrait" class="portrait" />
-                <ui:Label name="speaker-name" text="" class="speaker-name" />
-                <ui:Label name="thinking" text="thinking" class="thinking hidden" />
-            </ui:VisualElement>
+
+        <ui:VisualElement name="crosshair" class="crosshair" />
+        <ui:Label name="interact-hint" text="" class="interact-hint hidden" />
+
+        <ui:VisualElement name="chat-panel" class="chat-panel">
             <ui:ScrollView name="history" class="history" />
-            <ui:VisualElement name="input-row" class="input-row">
-                <ui:Button name="mic-button" text="🎤" class="mic-button" />
+            <ui:VisualElement name="input-row" class="input-row hidden">
                 <ui:TextField name="input-field" class="input-field" />
-                <ui:Button name="submit-button" text="Say it" class="submit-button" />
+                <ui:Button name="submit-button" text="Say" class="submit-button" />
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <ui:VisualElement name="status-row" class="status-row">
+            <ui:Label name="thinking" text="" class="thinking hidden" />
+            <ui:Label name="mic-status" text="Hold V to talk · Enter to type · Click things in the car" class="mic-status" />
+        </ui:VisualElement>
+
         <ui:VisualElement name="outcome-overlay" class="outcome-overlay hidden">
             <ui:VisualElement name="outcome-card" class="outcome-card">
                 <ui:Label name="outcome-title" text="" class="outcome-title" />

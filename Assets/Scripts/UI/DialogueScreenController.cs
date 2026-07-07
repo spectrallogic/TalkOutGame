@@ -3,52 +3,62 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using TalkOut.Core;
 using TalkOut.Data;
+using TalkOut.Player;
 
 namespace TalkOut.UI
 {
-    /// Binds the UI Toolkit dialogue screen to the TurnController.
-    /// Handles history rendering, live reply streaming, thinking state,
-    /// input submission, and the outcome overlay.
+    /// FPS HUD: crosshair + interact hint, streaming chat log fed by the
+    /// EventLog, Enter-to-type chat mode (frees the cursor), mic status,
+    /// thinking indicator, outcome overlay.
     [RequireComponent(typeof(UIDocument))]
     public class DialogueScreenController : MonoBehaviour
     {
         public TurnController turnController;
+        public FirstPersonRig firstPersonRig;
+        public InteractionRaycaster raycaster;
+        public VoiceInput voiceInput;
 
         private ScrollView historyView;
+        private VisualElement inputRow;
         private TextField inputField;
-        private Button submitButton;
-        private Label speakerName;
         private Label thinkingLabel;
-        private VisualElement portrait;
+        private Label interactHint;
+        private Label micStatus;
         private VisualElement outcomeOverlay;
         private Label outcomeTitle;
         private Label outcomeText;
 
-        private Label liveNpcLabel; // label being streamed into while the model talks
+        private Label liveNpcLabel;
         private float thinkingTime;
+        private bool chatMode;
+        private bool attachedToLog;
+        private string defaultMicText;
 
         private void OnEnable()
         {
             var root = GetComponent<UIDocument>().rootVisualElement;
             historyView = root.Q<ScrollView>("history");
+            inputRow = root.Q<VisualElement>("input-row");
             inputField = root.Q<TextField>("input-field");
-            submitButton = root.Q<Button>("submit-button");
-            speakerName = root.Q<Label>("speaker-name");
             thinkingLabel = root.Q<Label>("thinking");
-            portrait = root.Q<VisualElement>("portrait");
+            interactHint = root.Q<Label>("interact-hint");
+            micStatus = root.Q<Label>("mic-status");
             outcomeOverlay = root.Q<VisualElement>("outcome-overlay");
             outcomeTitle = root.Q<Label>("outcome-title");
             outcomeText = root.Q<Label>("outcome-text");
+            defaultMicText = micStatus.text;
 
-            var micButton = root.Q<Button>("mic-button");
-            micButton.SetEnabled(false); // voice input is post-MVP
-
-            submitButton.clicked += Submit;
+            root.Q<Button>("submit-button").clicked += SubmitTyped;
             inputField.RegisterCallback<KeyDownEvent>(evt =>
             {
                 if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
                 {
-                    Submit();
+                    SubmitTyped();
+                    evt.StopPropagation();
+                }
+                else if (evt.keyCode == KeyCode.Escape)
+                {
+                    SetChatMode(false);
                     evt.StopPropagation();
                 }
             });
@@ -67,10 +77,15 @@ namespace TalkOut.UI
 
             if (turnController != null)
             {
-                turnController.LineAdded += OnLineAdded;
                 turnController.ThinkingChanged += OnThinkingChanged;
                 turnController.PartialReply += OnPartialReply;
                 turnController.SceneEnded += OnSceneEnded;
+            }
+            if (raycaster != null) raycaster.HintChanged += OnHintChanged;
+            if (voiceInput != null)
+            {
+                voiceInput.ListeningChanged += OnListening;
+                voiceInput.TranscribingChanged += OnTranscribing;
             }
         }
 
@@ -78,61 +93,103 @@ namespace TalkOut.UI
         {
             if (turnController != null)
             {
-                turnController.LineAdded -= OnLineAdded;
                 turnController.ThinkingChanged -= OnThinkingChanged;
                 turnController.PartialReply -= OnPartialReply;
                 turnController.SceneEnded -= OnSceneEnded;
-            }
-        }
-
-        private void Start()
-        {
-            var npc = turnController != null && turnController.Scenario != null
-                ? turnController.Scenario.GetNpc(turnController.Scenario.respondingNpcId)
-                : null;
-            if (npc != null)
-            {
-                speakerName.text = npc.displayName;
-                if (npc.faceSet != null && npc.faceSet.defaultFace != null)
+                if (attachedToLog && turnController.Log != null)
                 {
-                    portrait.style.backgroundImage = new StyleBackground(npc.faceSet.defaultFace);
+                    turnController.Log.EventAdded -= OnEvent;
                 }
             }
-            inputField.Focus();
+            if (raycaster != null) raycaster.HintChanged -= OnHintChanged;
+            if (voiceInput != null)
+            {
+                voiceInput.ListeningChanged -= OnListening;
+                voiceInput.TranscribingChanged -= OnTranscribing;
+            }
         }
 
         private void Update()
         {
+            // The EventLog exists only after GameManager initializes — attach lazily.
+            if (!attachedToLog && turnController != null && turnController.Log != null)
+            {
+                turnController.Log.EventAdded += OnEvent;
+                attachedToLog = true;
+                foreach (var e in turnController.Log.Events) OnEvent(e);
+            }
+
+            if (!chatMode && Input.GetKeyDown(KeyCode.Return))
+            {
+                SetChatMode(true);
+            }
+
             if (thinkingLabel.style.display == DisplayStyle.Flex)
             {
                 thinkingTime += Time.deltaTime;
                 int dots = 1 + (int)(thinkingTime * 2f) % 3;
-                thinkingLabel.text = "thinking" + new string('.', dots);
+                thinkingLabel.text = "the officer is thinking" + new string('.', dots);
             }
         }
 
-        private void Submit()
+        private void SetChatMode(bool on)
         {
-            if (turnController == null || turnController.Phase != TurnPhase.AwaitingInput) return;
+            chatMode = on;
+            inputRow.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+            if (firstPersonRig != null)
+            {
+                firstPersonRig.LookEnabled = !on;
+                firstPersonRig.LockCursor(!on);
+            }
+            if (on)
+            {
+                inputField.value = "";
+                inputField.schedule.Execute(() => inputField.Focus()).ExecuteLater(30);
+            }
+        }
+
+        private void SubmitTyped()
+        {
             string text = inputField.value;
-            if (string.IsNullOrWhiteSpace(text)) return;
-            inputField.value = "";
-            turnController.SubmitPlayerInput(text);
-            inputField.Focus();
+            SetChatMode(false);
+            if (!string.IsNullOrWhiteSpace(text) && turnController != null)
+            {
+                turnController.SubmitPlayerUtterance(text);
+            }
         }
 
-        private void OnLineAdded(DialogueLine line)
+        private void OnEvent(GameEvent e)
         {
-            if (line.kind == LineKind.Npc && liveNpcLabel != null)
+            string text;
+            string kindClass;
+            switch (e.kind)
             {
-                // Finalize the streamed label instead of adding a duplicate.
-                liveNpcLabel.text = FormatLine(line);
-                liveNpcLabel = null;
+                case EventKind.PlayerSaid:
+                    text = $"You: {e.text}";
+                    kindClass = "line-player";
+                    break;
+                case EventKind.NpcSaid:
+                    text = $"{e.actor}: {e.text}";
+                    kindClass = "line-npc";
+                    if (liveNpcLabel != null)
+                    {
+                        liveNpcLabel.text = text;
+                        liveNpcLabel = null;
+                        ScrollToBottom();
+                        return;
+                    }
+                    break;
+                case EventKind.PlayerAction:
+                case EventKind.SceneBeat:
+                    text = e.text;
+                    kindClass = "line-beat";
+                    break;
+                default:
+                    text = e.text;
+                    kindClass = "line-system";
+                    break;
             }
-            else
-            {
-                AppendLabel(FormatLine(line), ClassFor(line.kind));
-            }
+            AppendLabel(text, kindClass);
             ScrollToBottom();
         }
 
@@ -140,15 +197,10 @@ namespace TalkOut.UI
         {
             thinkingLabel.style.display = thinking ? DisplayStyle.Flex : DisplayStyle.None;
             thinkingTime = 0f;
-            inputField.SetEnabled(!thinking);
-            submitButton.SetEnabled(!thinking);
             if (thinking)
             {
                 liveNpcLabel = AppendLabel("…", "line-npc");
-            }
-            else if (!thinking && liveNpcLabel != null && liveNpcLabel.text == "…")
-            {
-                // Nothing streamed (mock fallback etc.) — the final line will fill it.
+                ScrollToBottom();
             }
         }
 
@@ -156,39 +208,40 @@ namespace TalkOut.UI
         {
             if (liveNpcLabel != null && !string.IsNullOrEmpty(partial))
             {
-                liveNpcLabel.text = FormatNpcText(partial);
+                liveNpcLabel.text = partial;
                 ScrollToBottom();
             }
+        }
+
+        private void OnHintChanged(string hint)
+        {
+            bool show = !string.IsNullOrEmpty(hint);
+            interactHint.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (show) interactHint.text = $"[Click]  {hint}";
+        }
+
+        private void OnListening(bool listening)
+        {
+            micStatus.text = listening ? "● Listening… (release V to send)" : defaultMicText;
+            micStatus.EnableInClassList("listening", listening);
+        }
+
+        private void OnTranscribing(bool transcribing)
+        {
+            if (transcribing) micStatus.text = "…transcribing…";
+            else if (!micStatus.ClassListContains("listening")) micStatus.text = defaultMicText;
+            micStatus.EnableInClassList("transcribing", transcribing);
         }
 
         private void OnSceneEnded(OutcomeRule outcome)
         {
             outcomeTitle.text = (outcome.isWin ? "🎉 " : "🚨 ") + outcome.title;
             outcomeText.text = outcome.resultText;
-            outcomeOverlay.RemoveFromClassList("hidden");
             outcomeOverlay.style.display = DisplayStyle.Flex;
-        }
-
-        private string FormatLine(DialogueLine line)
-        {
-            switch (line.kind)
+            if (firstPersonRig != null)
             {
-                case LineKind.Player: return line.text;
-                case LineKind.Npc: return FormatNpcText(line.text);
-                default: return line.text;
-            }
-        }
-
-        private string FormatNpcText(string text) => text;
-
-        private static string ClassFor(LineKind kind)
-        {
-            switch (kind)
-            {
-                case LineKind.Player: return "line-player";
-                case LineKind.Npc: return "line-npc";
-                case LineKind.Beat: return "line-beat";
-                default: return "line-system";
+                firstPersonRig.LookEnabled = false;
+                firstPersonRig.LockCursor(false);
             }
         }
 
@@ -198,6 +251,8 @@ namespace TalkOut.UI
             label.AddToClassList("line");
             label.AddToClassList(kindClass);
             historyView.Add(label);
+            // Keep the on-screen log tidy: cap at 40 lines.
+            while (historyView.childCount > 40) historyView.RemoveAt(0);
             return label;
         }
 
