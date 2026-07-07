@@ -78,7 +78,11 @@ namespace TalkOut.Directing
                 }
 
                 EnsureSystemPrompt(request);
-                await agent.llm.WaitUntilReady();
+                Task ready = agent.llm.WaitUntilReady();
+                if (await Task.WhenAny(ready, Task.Delay(TimeSpan.FromSeconds(60), cancellationToken)) != ready)
+                {
+                    return FallbackLibrary.GetFallback("LLM server never became ready");
+                }
                 if (agent.llm.failed)
                 {
                     return FallbackLibrary.GetFallback("LLM server failed to start");

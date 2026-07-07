@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5f182c9be4dfdb448598eeedb4bf4bd, type: 3}
+  m_Name: arrest
+  m_EditorClassIdentifier: 
+  id: arrest
+  title: ARRESTED
+  resultText: Backup arrives. You're going downtown. Benny is already composing the
+    group-chat message.
+  priority: 100
+  isWin: 0
+  conditions:
+  - kind: 0
+    key: suspicion
+    comparator: 1
+    value: 90
+  - kind: 1
+    key: backupCalled
+    comparator: 0
+    value: 1

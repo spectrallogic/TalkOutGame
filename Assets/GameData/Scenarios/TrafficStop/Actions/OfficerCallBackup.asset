@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd2b74fb85ee189478a3ce90ab6f047c, type: 3}
+  m_Name: OfficerCallBackup
+  m_EditorClassIdentifier: 
+  id: OfficerCallBackup
+  llmDescription: "officer radios for backup \u2014 serious escalation"
+  narrationText: The officer steps back and calls for backup.
+  actorId: officer
+  targetPropId: radio
+  animationKey: armRaiseL
+  moveToLocationId: 
+  expressionOverride: 
+  engineEffects:
+  - kind: 1
+    key: backupCalled
+    amount: 0
+    boolValue: 1
+    stringValue: 
+  availabilityConditions:
+  - kind: 0
+    key: suspicion
+    comparator: 0
+    value: 60
+  - kind: 1
+    key: backupCalled
+    comparator: 0
+    value: 0
+  endsScene: 0
+  outcomeId: 

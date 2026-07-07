@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd2b74fb85ee189478a3ce90ab6f047c, type: 3}
+  m_Name: PassengerHonkHorn
+  m_EditorClassIdentifier: 
+  id: PassengerHonkHorn
+  llmDescription: the passenger accidentally honks the horn
+  narrationText: Benny leans over and honks the horn. Nobody knows why. Not even
+    Benny.
+  actorId: passenger
+  targetPropId: horn
+  animationKey: armRaise
+  moveToLocationId: 
+  expressionOverride: 
+  engineEffects:
+  - kind: 0
+    key: suspicion
+    amount: 10
+    boolValue: 0
+    stringValue: 
+  availabilityConditions: []
+  endsScene: 0
+  outcomeId: 

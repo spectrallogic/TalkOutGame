@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd2b74fb85ee189478a3ce90ab6f047c, type: 3}
+  m_Name: EndSceneWin
+  m_EditorClassIdentifier: 
+  id: EndSceneWin
+  llmDescription: "END the scene: officer lets the player go \u2014 ONLY when genuinely
+    persuaded"
+  narrationText: The officer sighs and waves you off.
+  actorId: officer
+  targetPropId: 
+  animationKey: 
+  moveToLocationId: 
+  expressionOverride: 
+  engineEffects: []
+  availabilityConditions:
+  - kind: 0
+    key: sympathy
+    comparator: 1
+    value: 55
+  endsScene: 1
+  outcomeId: talked_out

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eafb09f2326b8ff44a90a420a65d6612, type: 3}
+  m_Name: Passenger
+  m_EditorClassIdentifier: 
+  id: passenger
+  displayName: Benny
+  intelligence: 50
+  ego: 30
+  fear: 90
+  sympathy: 40
+  patience: 40
+  personality: The player's best friend, riding shotgun. Loyal but a complete coward
+    with zero poker face. Panics under the slightest pressure and overshares catastrophically.
+  faceSet: {fileID: 11400000, guid: 55eb756dddb66fd49aa734177cfbf88d, type: 2}
+  prefab: {fileID: 0}

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f355217f3db15e044aa63ceebbe28008, type: 3}
+  m_Name: Officer_FaceSet
+  m_EditorClassIdentifier: 
+  defaultFace: {fileID: 2800000, guid: 07d3d69f1577aab44b2673ea8effd2f4, type: 3}
+  faces:
+  - emotion: neutral
+    texture: {fileID: 2800000, guid: 07d3d69f1577aab44b2673ea8effd2f4, type: 3}
+  - emotion: suspicious
+    texture: {fileID: 2800000, guid: 8809b52c6a54dd740890b787a6cb9e99, type: 3}
+  - emotion: angry
+    texture: {fileID: 2800000, guid: 0378a9c95c981be4f80766322d67332e, type: 3}
+  - emotion: amused
+    texture: {fileID: 2800000, guid: a7b46acbdcff25c41ac985b905d552c9, type: 3}
+  - emotion: confused
+    texture: {fileID: 2800000, guid: f2e0c24915fd3a246b29ae939ae5d19d, type: 3}
+  - emotion: panicked
+    texture: {fileID: 2800000, guid: a3a32ea3d4aa18e44b16bd9c3dadb6f6, type: 3}
+  - emotion: warm
+    texture: {fileID: 2800000, guid: f932dd2d4d10791449520834245577cc, type: 3}
+  - emotion: defeated
+    texture: {fileID: 2800000, guid: 55cf7d30cd86f6b4981bdba279ab5933, type: 3}
+  - emotion: blink
+    texture: {fileID: 2800000, guid: 195ecd4d3e08d0240b3bcd5c7e1e122a, type: 3}

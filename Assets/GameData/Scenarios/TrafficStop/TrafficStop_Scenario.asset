@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7ccf5f6acc51ae43a96980722a96222, type: 3}
+  m_Name: TrafficStop_Scenario
+  m_EditorClassIdentifier: 
+  scenarioId: traffic_stop
+  title: Traffic Stop
+  sceneDescription: Night. A quiet highway shoulder. Red and blue lights flash behind
+    a beat-up sedan. The player has been pulled over for speeding. Officer Glazer
+    approaches the driver's window, flashlight in hand. The player's friend Benny
+    sits in the passenger seat, sweating.
+  playerGoal: Talk your way out of this ticket.
+  comedyRules: "Stay in character no matter what. React to absurd claims with complete
+    seriousness \u2014 that's the joke. Never break the fourth wall or mention being
+    an AI or a game. Keep replies to 1-2 sentences. Be occasionally, unexpectedly
+    persuaded by truly creative nonsense. If the player is rude, get colder and more
+    bureaucratic, never shouty."
+  respondingNpcId: officer
+  stats:
+  - id: suspicion
+    initial: 40
+    min: 0
+    max: 120
+    adjective: suspicious of the player
+  - id: patience
+    initial: 70
+    min: -20
+    max: 100
+    adjective: patient
+  - id: sympathy
+    initial: 30
+    min: 0
+    max: 100
+    adjective: sympathetic toward the player
+  - id: amusement
+    initial: 10
+    min: 0
+    max: 100
+    adjective: amused
+  flags:
+  - id: ticketWritten
+    initial: 0
+  - id: backupCalled
+    initial: 0
+  - id: passengerQuestioned
+    initial: 0
+  - id: playerArrested
+    initial: 0
+  initialLocations:
+  - actorId: officer
+    locationId: DriverWindow
+  - actorId: passenger
+    locationId: PassengerSeat
+  npcs:
+  - {fileID: 11400000, guid: 34e45415dad43124c9ba1d9bd6aa2831, type: 2}
+  - {fileID: 11400000, guid: 4177ed096c1831746ad799361c783d52, type: 2}
+  actionCatalog:
+  - {fileID: 11400000, guid: cf186a7dc87a56f4fa6e82591cd25f23, type: 2}
+  - {fileID: 11400000, guid: 7a286efbc6a5c314d9e2865394f0c0b0, type: 2}
+  - {fileID: 11400000, guid: f1922609fc4e29e429f11f1e8a5e543e, type: 2}
+  - {fileID: 11400000, guid: ab8e3468f23cba042882bd1780d81807, type: 2}
+  - {fileID: 11400000, guid: 5cdb2b23344ee894081729d923e90b53, type: 2}
+  - {fileID: 11400000, guid: 76922a6bac4ae014381ca90455e7221c, type: 2}
+  - {fileID: 11400000, guid: d6978d915cf77044e86f85194ff41697, type: 2}
+  - {fileID: 11400000, guid: 538b963076bcf8645ac3d1aece31893a, type: 2}
+  - {fileID: 11400000, guid: ec277ce350b09ff459555b8b11c58a5e, type: 2}
+  - {fileID: 11400000, guid: f97864f80ec9d8240ba24615c5c0cd72, type: 2}
+  - {fileID: 11400000, guid: 71aea456b41adc840a90114f06e7ff33, type: 2}
+  - {fileID: 11400000, guid: a66046788124fec469a1d0a448730af8, type: 2}
+  - {fileID: 11400000, guid: 9eb373859364b944b80cc24a717f1d0b, type: 2}
+  - {fileID: 11400000, guid: 74fa95153d748e84c9d57025f17e1935, type: 2}
+  - {fileID: 11400000, guid: 2038b91a83885d346bdf089dc14476db, type: 2}
+  - {fileID: 11400000, guid: 96411d8d254569246ba6577ece6a5667, type: 2}
+  props:
+  - {fileID: 11400000, guid: d00f802f94ad22b4e99d192973f6f176, type: 2}
+  - {fileID: 11400000, guid: 61b443cc812c9734ea3f2c9b4bb2106e, type: 2}
+  - {fileID: 11400000, guid: 653f255bd67aece4fad31a82b0dd7ff3, type: 2}
+  - {fileID: 11400000, guid: ede0c2189de770e46a3be268fbb8b62e, type: 2}
+  - {fileID: 11400000, guid: f00d65f52f046de4f887f26834207780, type: 2}
+  - {fileID: 11400000, guid: 4832291b25031ca49aabfde1b86eb934, type: 2}
+  outcomes:
+  - {fileID: 11400000, guid: 69f84ef84f084d04598e876747c1e723, type: 2}
+  - {fileID: 11400000, guid: 9e4b8445090e64a45bf311a72023dcb6, type: 2}
+  - {fileID: 11400000, guid: ed9b73e2cd34d384da7a4ec485717ee3, type: 2}
+  - {fileID: 11400000, guid: dba0a31bf8b95684b9193c8a57523295, type: 2}
+  - {fileID: 11400000, guid: 09f1fb7eeb9788c46849d1d7d224be5f, type: 2}
+  - {fileID: 11400000, guid: a61b50fa7b53c25429107c83af9be117, type: 2}
+  maxTurns: 20
+  maxTurnsOutcomeId: reduced_ticket
+  maxStatDeltaPerTurn: 20
