@@ -18,8 +18,7 @@ using TalkOut.World;
 
 namespace TalkOut.EditorTools
 {
-    /// Builds the first-person TrafficStop scene and MainMenu from scratch.
-    /// Idempotent — re-running regenerates both scenes.
+    /// Builds all scenes from scratch (idempotent): TrafficStop, Date, MainMenu.
     public static class TalkOutSceneBuilder
     {
         private const int PostFxLayer = 8;
@@ -31,7 +30,7 @@ namespace TalkOut.EditorTools
             TalkOutAssetBuilder.GenerateFaces();
             TalkOutAssetBuilder.BuildAssets();
             BuildScenes();
-            Debug.Log("[TalkOut] Build Everything finished. Open Assets/Scenes/TrafficStop.unity and press Play.");
+            Debug.Log("[TalkOut] Build Everything finished. Open a scene in Assets/Scenes and press Play.");
         }
 
         [MenuItem("Tools/TalkOut/0. Apply Graphics Settings")]
@@ -44,7 +43,7 @@ namespace TalkOut.EditorTools
             QualitySettings.shadows = ShadowQuality.All;
             QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
             QualitySettings.shadowDistance = 60f;
-            QualitySettings.pixelLightCount = 8;
+            QualitySettings.pixelLightCount = 10;
             Debug.Log("[TalkOut] Graphics settings applied (Linear color, 4x MSAA, soft shadows).");
         }
 
@@ -52,15 +51,19 @@ namespace TalkOut.EditorTools
         public static void BuildScenes()
         {
             BuildTrafficStopScene();
+            BuildDateScene();
             BuildMainMenuScene();
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/TrafficStop.unity", true),
+                new EditorBuildSettingsScene("Assets/Scenes/Date.unity", true),
             };
             Debug.Log("[TalkOut] Scenes built and added to Build Settings.");
         }
 
+        // ====================================================================
+        // LEVEL 1 — TRAFFIC STOP
         // ====================================================================
         private static void BuildTrafficStopScene()
         {
@@ -69,22 +72,35 @@ namespace TalkOut.EditorTools
             var skybox = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/NightSky.mat");
             RenderSettings.skybox = skybox;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.13f, 0.15f, 0.24f);
-            RenderSettings.ambientEquatorColor = new Color(0.09f, 0.10f, 0.15f);
-            RenderSettings.ambientGroundColor = new Color(0.04f, 0.05f, 0.06f);
+            RenderSettings.ambientSkyColor = new Color(0.17f, 0.19f, 0.30f);
+            RenderSettings.ambientEquatorColor = new Color(0.12f, 0.13f, 0.19f);
+            RenderSettings.ambientGroundColor = new Color(0.05f, 0.06f, 0.08f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.04f, 0.05f, 0.09f);
-            RenderSettings.fogDensity = 0.012f;
+            RenderSettings.fogColor = new Color(0.05f, 0.06f, 0.10f);
+            RenderSettings.fogDensity = 0.010f;
 
-            // --- lights ---
             var moon = new GameObject("Moonlight").AddComponent<Light>();
             moon.type = LightType.Directional;
-            moon.intensity = 0.4f;
-            moon.color = new Color(0.6f, 0.68f, 0.95f);
+            moon.intensity = 0.55f;
+            moon.color = new Color(0.62f, 0.70f, 0.98f);
             moon.shadows = LightShadows.Soft;
             moon.transform.rotation = Quaternion.Euler(46f, -34f, 0f);
             RenderSettings.sun = moon;
+
+            var fill = MakeLight(null, "FillLight", new Vector3(-3.4f, 3.2f, 1.6f), new Color(1.0f, 0.93f, 0.82f), 1.1f, 16f);
+
+            // street lamp: a warm pool of light over the stop
+            var lamp = new GameObject("StreetLamp").transform;
+            lamp.position = new Vector3(2.9f, 0, 2.2f);
+            Prim(PrimitiveType.Cube, "Pole", lamp, new Vector3(0, 2.6f, 0), new Vector3(0.14f, 5.2f, 0.14f), "Guardrail");
+            Prim(PrimitiveType.Cube, "Arm", lamp, new Vector3(-1.1f, 5.1f, 0), new Vector3(2.2f, 0.12f, 0.12f), "Guardrail");
+            Prim(PrimitiveType.Cube, "Head", lamp, new Vector3(-2.1f, 5.0f, 0), new Vector3(0.5f, 0.14f, 0.3f), "Lamp_Warm");
+            var lampLight = MakeLight(lamp, "LampLight", new Vector3(-2.1f, 4.9f, 0), new Color(1f, 0.85f, 0.6f), 2.6f, 13f);
+            lampLight.type = LightType.Spot;
+            lampLight.spotAngle = 95f;
+            lampLight.shadows = LightShadows.Soft;
+            lampLight.transform.localRotation = Quaternion.Euler(90f, 0, 0);
 
             // --- environment ---
             var env = new GameObject("Environment").transform;
@@ -95,14 +111,11 @@ namespace TalkOut.EditorTools
                 Prim(PrimitiveType.Cube, $"Dash_{i}", env,
                     new Vector3(-3.8f, 0.012f, -58f + i * 4.5f), new Vector3(0.14f, 0.02f, 1.4f), "Line_White");
             }
-            // guardrail on the shoulder side
             for (int i = 0; i < 16; i++)
             {
-                float z = -34f + i * 4.5f;
-                Prim(PrimitiveType.Cube, $"RailPost_{i}", env, new Vector3(3.4f, 0.35f, z), new Vector3(0.12f, 0.7f, 0.12f), "Guardrail");
+                Prim(PrimitiveType.Cube, $"RailPost_{i}", env, new Vector3(3.4f, 0.35f, -34f + i * 4.5f), new Vector3(0.12f, 0.7f, 0.12f), "Guardrail");
             }
             Prim(PrimitiveType.Cube, "Rail", env, new Vector3(3.4f, 0.62f, 0f), new Vector3(0.08f, 0.22f, 72f), "Guardrail");
-            // distant mountain silhouettes
             Prim(PrimitiveType.Cube, "Mountain1", env, new Vector3(-60f, 8f, 60f), new Vector3(70f, 26f, 30f), "Mountain")
                 .transform.rotation = Quaternion.Euler(0, 35f, 0);
             Prim(PrimitiveType.Cube, "Mountain2", env, new Vector3(40f, 6f, 90f), new Vector3(60f, 20f, 26f), "Mountain")
@@ -116,7 +129,6 @@ namespace TalkOut.EditorTools
                 Tree(env, pos);
             }
 
-            // speed limit sign (the joke writes itself)
             var sign = new GameObject("SpeedSign").transform;
             sign.SetParent(env, false);
             sign.position = new Vector3(3.0f, 0, 6f);
@@ -135,7 +147,7 @@ namespace TalkOut.EditorTools
             signText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             signText.GetComponent<MeshRenderer>().sharedMaterial = signText.font.material;
 
-            // --- player car (open cabin so we can sit in it) ---
+            // --- player car ---
             var playerCar = new GameObject("PlayerCar").transform;
             playerCar.position = Vector3.zero;
             Prim(PrimitiveType.Cube, "Body", playerCar, new Vector3(0, 0.5f, 0), new Vector3(1.7f, 0.5f, 3.6f), "Car_Rust");
@@ -155,15 +167,15 @@ namespace TalkOut.EditorTools
             Prim(PrimitiveType.Cube, "SeatLBack", playerCar, new Vector3(-0.42f, 0.95f, -0.48f), new Vector3(0.55f, 0.6f, 0.12f), "Car_Interior");
             Prim(PrimitiveType.Cube, "SeatR", playerCar, new Vector3(0.42f, 0.62f, -0.2f), new Vector3(0.55f, 0.14f, 0.55f), "Car_Interior");
             Prim(PrimitiveType.Cube, "SeatRBack", playerCar, new Vector3(0.42f, 0.95f, -0.48f), new Vector3(0.55f, 0.6f, 0.12f), "Car_Interior");
-
-            BuildInteractables(playerCar);
-
-            // torso so looking down shows a body
             Prim(PrimitiveType.Cube, "PlayerTorso", playerCar, new Vector3(-0.42f, 0.85f, -0.18f), new Vector3(0.48f, 0.5f, 0.3f), "Car_White");
 
-            // --- Benny ---
+            // dome light so the cabin isn't a black pit
+            MakeLight(playerCar, "DomeLight", new Vector3(0, 1.45f, 0.1f), new Color(1f, 0.9f, 0.75f), 0.9f, 2.5f);
+
+            BuildCarInteractables(playerCar);
+
             var passenger = BuildCharacter("Passenger_Benny", "passenger",
-                "Skin_Passenger", "Shirt_Loud", "Passenger", standing: false);
+                "Skin_Passenger", "Shirt_Loud", "Passenger", standing: false, hairMat: "Hair_Dark");
             passenger.transform.SetParent(playerCar, false);
             passenger.transform.localPosition = new Vector3(0.42f, 0.7f, -0.2f);
             passenger.GetComponent<NPCActor>().canWalk = false;
@@ -183,7 +195,6 @@ namespace TalkOut.EditorTools
 
             var redLight = MakeLight(policeCar, "RedLight", new Vector3(-0.28f, 1.95f, -0.3f), Color.red, 3.5f, 16f);
             var blueLight = MakeLight(policeCar, "BlueLight", new Vector3(0.28f, 1.95f, -0.3f), Color.blue, 3.5f, 16f);
-
             var lights = policeCar.gameObject.AddComponent<PoliceLights>();
             lights.redLight = redLight;
             lights.blueLight = blueLight;
@@ -192,87 +203,397 @@ namespace TalkOut.EditorTools
 
             var coffeeProp = Prim(PrimitiveType.Cylinder, "CoffeeCup", policeCar,
                 new Vector3(0.55f, 0.95f, 1.7f), new Vector3(0.12f, 0.09f, 0.12f), "Prop_Coffee");
-            AddProp(coffeeProp, "coffee");
+            AddProp(coffeeProp, "TrafficStop", "coffee");
 
-            // headlights pointing at the player car for drama
-            var headlight = MakeLight(policeCar, "Headlights", new Vector3(0, 0.7f, 2.0f), new Color(1f, 0.95f, 0.8f), 2.2f, 14f);
+            var headlight = MakeLight(policeCar, "Headlights", new Vector3(0, 0.7f, 2.0f), new Color(1f, 0.95f, 0.8f), 2.4f, 15f);
             headlight.type = LightType.Spot;
-            headlight.spotAngle = 65f;
+            headlight.spotAngle = 68f;
             headlight.transform.localRotation = Quaternion.Euler(2f, 0, 0);
 
-            // --- Officer Glazer (starts at his car; walks up during the intro) ---
-            // starts beside his cruiser on the driver's side so the intro walk
-            // is a clean straight line up the lane (no clipping through the car)
+            // --- Officer Glazer (with cap) ---
             var officer = BuildCharacter("Officer_Glazer", "officer",
-                "Skin_Officer", "Uniform_Navy", "Officer", standing: true);
+                "Skin_Officer", "Uniform_Navy", "Officer", standing: true, hatMat: "Uniform_Navy");
             officer.transform.position = new Vector3(-1.6f, 0, -4.2f);
 
             var torso = officer.transform.Find("TorsoPivot");
             var pad = StripCollider(Prim(PrimitiveType.Cube, "TicketPad", torso,
                 new Vector3(0.2f, 0.45f, 0.12f), new Vector3(0.16f, 0.03f, 0.22f), "Prop_Generic"));
-            AddProp(pad, "ticketPad");
+            AddProp(pad, "TrafficStop", "ticketPad");
             var radio = StripCollider(Prim(PrimitiveType.Cube, "Radio", torso,
                 new Vector3(-0.22f, 0.9f, 0.12f), new Vector3(0.08f, 0.12f, 0.06f), "Prop_Generic"));
-            AddProp(radio, "radio");
+            AddProp(radio, "TrafficStop", "radio");
             var armR = torso.Find("ArmR");
             var flashlight = StripCollider(Prim(PrimitiveType.Cube, "Flashlight", armR,
                 new Vector3(0, -0.55f, 0.1f), new Vector3(0.45f, 0.5f, 0.45f), "Prop_Generic"));
-            AddProp(flashlight, "flashlight");
+            AddProp(flashlight, "TrafficStop", "flashlight");
             var beam = MakeLight(flashlight.transform, "Beam", new Vector3(0, -0.5f, 0.5f), new Color(1f, 0.98f, 0.85f), 2.5f, 9f);
             beam.type = LightType.Spot;
             beam.spotAngle = 42f;
             beam.transform.localRotation = Quaternion.Euler(10f, 0, 0);
 
-            var speaker = officer.AddComponent<NpcSpeaker>();
-            speaker.actorDisplayName = "Officer Glazer";
-            speaker.voiceName = "David";
-            speaker.rate = 2;   // natural clip, not a drawl
-            speaker.pitch = -2;
-            speaker.wobble = officer.GetComponent<WobbleAnimator>();
-
             var license = Prim(PrimitiveType.Cube, "LicenseCard", playerCar,
                 new Vector3(-0.15f, 1.02f, 0.95f), new Vector3(0.16f, 0.02f, 0.22f), "Line_White");
-            AddProp(license, "license");
+            AddProp(license, "TrafficStop", "license");
             var handOver = license.AddComponent<Interactable>();
             handOver.hintText = "Hand over your license";
             handOver.pulseTarget = license.transform;
             handOver.eventTextTemplate = "The driver held their license out the window for the officer.";
             handOver.cooldownSeconds = 10f;
 
-            // --- locations ---
             var locations = new GameObject("Locations").transform;
             Location(locations, "DriverWindow", new Vector3(-1.5f, 0, 0.2f), 90f);
             Location(locations, "PassengerWindow", new Vector3(1.5f, 0, 0.2f), -90f);
             Location(locations, "PoliceCar", new Vector3(-1.6f, 0, -4.2f), 0f);
             Location(locations, "PassengerSeat", new Vector3(0.42f, 0.7f, -0.2f), 0f);
 
-            // --- first-person camera (driver's eyes) ---
+            // --- first-person camera ---
+            var (cameraGo, rig, raycaster) = BuildPlayerCamera(playerCar, new Vector3(-0.42f, 1.3f, -0.1f), 150f);
+
+            // --- systems + wiring (shared) ---
+            var wiring = WireGameSystems(
+                "Assets/GameData/Scenarios/TrafficStop/TrafficStop_Scenario.asset",
+                cameraGo, rig, raycaster,
+                "Hold V to talk  ·  Enter to type  ·  Click things in the car",
+                includeHarness: true);
+
+            var speaker = officer.AddComponent<NpcSpeaker>();
+            speaker.actorDisplayName = "Officer Glazer";
+            speaker.voiceName = "David";
+            speaker.rate = 2;
+            speaker.pitch = -2;
+            speaker.wobble = officer.GetComponent<WobbleAnimator>();
+
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/TrafficStop.unity");
+            Debug.Log("[TalkOut] TrafficStop scene built.");
+        }
+
+        private static void BuildCarInteractables(Transform playerCar)
+        {
+            var gloveBox = new GameObject("GloveBox");
+            gloveBox.transform.SetParent(playerCar, false);
+            gloveBox.transform.localPosition = new Vector3(0.38f, 0.92f, 0.88f);
+            Prim(PrimitiveType.Cube, "Box", gloveBox.transform, new Vector3(0, 0, 0.05f), new Vector3(0.42f, 0.18f, 0.16f), "Car_Interior");
+            var lidPivot = new GameObject("LidPivot").transform;
+            lidPivot.SetParent(gloveBox.transform, false);
+            lidPivot.localPosition = new Vector3(0, -0.09f, -0.04f);
+            Prim(PrimitiveType.Cube, "Lid", lidPivot, new Vector3(0, 0.09f, 0), new Vector3(0.42f, 0.17f, 0.03f), "Prop_Generic");
+            var glove = gloveBox.AddComponent<Interactable>();
+            glove.hintText = "Open glove box";
+            glove.isToggle = true;
+            glove.hinge = lidPivot;
+            glove.openEuler = new Vector3(-95f, 0, 0);
+            glove.eventTextTemplate = "The driver opened the glove compartment in front of the officer. Inside: {item}.";
+            glove.eventTextClose = "The driver quietly closed the glove compartment.";
+            glove.randomContents = new[]
+            {
+                "a single taco sauce packet labeled 'FIRE'",
+                "roughly forty unpaid parking tickets",
+                "a live hamster in a tiny sombrero",
+                "an expired coupon for one free hug",
+                "a harmonica and a note that says 'in case of emergency'",
+                "a half-eaten birthday cake",
+            };
+            glove.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("suspicion", 7),
+            };
+
+            var wheel = Prim(PrimitiveType.Cube, "SteeringWheel", playerCar,
+                new Vector3(-0.42f, 1.02f, 0.72f), new Vector3(0.34f, 0.28f, 0.07f), "Wheel_Black");
+            var hornAudio = wheel.AddComponent<AudioSource>();
+            hornAudio.playOnAwake = false;
+            hornAudio.spatialBlend = 1f;
+            wheel.AddComponent<ToneGenerator>();
+            var horn = wheel.AddComponent<Interactable>();
+            horn.hintText = "Honk the horn";
+            horn.pulseTarget = wheel.transform;
+            horn.audioSource = hornAudio;
+            horn.eventTextTemplate = "The driver honked the horn. At a police officer. During a traffic stop.";
+            horn.cooldownSeconds = 3f;
+            horn.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 8),
+                StatEffect.Delta("suspicion", 3),
+            };
+
+            var carRadio = Prim(PrimitiveType.Cube, "CarRadio", playerCar,
+                new Vector3(0f, 0.98f, 0.9f), new Vector3(0.28f, 0.1f, 0.06f), "Prop_Generic");
+            var radioToggle = carRadio.AddComponent<Interactable>();
+            radioToggle.hintText = "Turn on the radio";
+            radioToggle.isToggle = true;
+            radioToggle.pulseTarget = carRadio.transform;
+            radioToggle.eventTextTemplate = "The driver turned on the car radio. Extremely loud polka music fills the night.";
+            radioToggle.eventTextClose = "The driver sheepishly turned the radio back off.";
+            radioToggle.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 6),
+            };
+
+            var shades = Prim(PrimitiveType.Cube, "Sunglasses", playerCar,
+                new Vector3(0.15f, 1.02f, 0.95f), new Vector3(0.18f, 0.03f, 0.07f), "Wheel_Black");
+            var shadesUse = shades.AddComponent<Interactable>();
+            shadesUse.hintText = "Put on sunglasses";
+            shadesUse.pulseTarget = shades.transform;
+            shadesUse.eventTextTemplate = "The driver slowly put on sunglasses. It is currently the middle of the night.";
+            shadesUse.cooldownSeconds = 8f;
+            shadesUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 5),
+                StatEffect.Delta("annoyance", 3),
+            };
+        }
+
+        // ====================================================================
+        // LEVEL 2 — THE DATE
+        // ====================================================================
+        private static void BuildDateScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            RenderSettings.skybox = null;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.30f, 0.24f, 0.18f);
+            RenderSettings.ambientEquatorColor = new Color(0.22f, 0.17f, 0.13f);
+            RenderSettings.ambientGroundColor = new Color(0.10f, 0.08f, 0.06f);
+            RenderSettings.fog = false;
+
+            var keyLight = new GameObject("WarmKey").AddComponent<Light>();
+            keyLight.type = LightType.Directional;
+            keyLight.intensity = 0.35f;
+            keyLight.color = new Color(1f, 0.85f, 0.68f);
+            keyLight.shadows = LightShadows.Soft;
+            keyLight.transform.rotation = Quaternion.Euler(55f, 25f, 0f);
+
+            // --- room ---
+            var room = new GameObject("Restaurant").transform;
+            Prim(PrimitiveType.Plane, "Floor", room, Vector3.zero, new Vector3(2.4f, 1, 2.4f), "Wood_Floor");
+            Prim(PrimitiveType.Cube, "WallBack", room, new Vector3(0, 1.6f, 6f), new Vector3(24f, 3.2f, 0.2f), "Wall_Warm");
+            Prim(PrimitiveType.Cube, "WallLeft", room, new Vector3(-6f, 1.6f, 0), new Vector3(0.2f, 3.2f, 24f), "Wall_Warm");
+            Prim(PrimitiveType.Cube, "WallRight", room, new Vector3(6f, 1.6f, 0), new Vector3(0.2f, 3.2f, 24f), "Wall_Warm");
+            Prim(PrimitiveType.Cube, "WallFront", room, new Vector3(0, 1.6f, -6f), new Vector3(24f, 3.2f, 0.2f), "Wall_Warm");
+            Prim(PrimitiveType.Cube, "Ceiling", room, new Vector3(0, 3.2f, 0), new Vector3(24f, 0.1f, 24f), "Pants_Dark");
+            // wall art
+            Prim(PrimitiveType.Cube, "Art1", room, new Vector3(-2.5f, 1.9f, 5.88f), new Vector3(1.2f, 0.9f, 0.05f), "Tree_Leaves");
+            Prim(PrimitiveType.Cube, "Art2", room, new Vector3(2.5f, 1.9f, 5.88f), new Vector3(1.2f, 0.9f, 0.05f), "Car_Rust");
+            // door (Chloe's escape route)
+            Prim(PrimitiveType.Cube, "Door", room, new Vector3(4.0f, 1.1f, -5.88f), new Vector3(1.1f, 2.2f, 0.1f), "Tree_Trunk");
+
+            // ceiling lamps
+            foreach (var pos in new[] { new Vector3(0, 3.0f, 0), new Vector3(-3.5f, 3.0f, 3f), new Vector3(3.5f, 3.0f, 3f), new Vector3(0, 3.0f, -4f) })
+            {
+                Prim(PrimitiveType.Cube, "LampShade", room, pos + new Vector3(0, 0.1f, 0), new Vector3(0.4f, 0.12f, 0.4f), "Lamp_Warm");
+                var lamp = MakeLight(room, "Lamp", pos, new Color(1f, 0.82f, 0.6f), 1.4f, 7f);
+                lamp.shadows = LightShadows.Soft;
+            }
+
+            // --- your table ---
+            var table = new GameObject("Table").transform;
+            table.SetParent(room, false);
+            table.position = Vector3.zero;
+            Prim(PrimitiveType.Cube, "Top", table, new Vector3(0, 0.78f, 0), new Vector3(1.3f, 0.06f, 0.9f), "Table_Cloth");
+            Prim(PrimitiveType.Cylinder, "Leg", table, new Vector3(0, 0.4f, 0), new Vector3(0.15f, 0.4f, 0.15f), "Tree_Trunk");
+            Prim(PrimitiveType.Cube, "YourChair", table, new Vector3(0, 0.45f, -0.85f), new Vector3(0.5f, 0.1f, 0.5f), "Tree_Trunk");
+            Prim(PrimitiveType.Cube, "HerChair", table, new Vector3(0, 0.45f, 0.85f), new Vector3(0.5f, 0.1f, 0.5f), "Tree_Trunk");
+            Prim(PrimitiveType.Cube, "PlayerTorso", table, new Vector3(0, 0.95f, -0.85f), new Vector3(0.48f, 0.5f, 0.3f), "Car_White");
+
+            // candle (emissive + light)
+            var candle = Prim(PrimitiveType.Cylinder, "Candle", table, new Vector3(-0.25f, 0.88f, 0), new Vector3(0.05f, 0.07f, 0.05f), "Candle_Wax");
+            Prim(PrimitiveType.Cube, "Flame", candle.transform, new Vector3(0, 1.2f, 0), new Vector3(0.5f, 0.4f, 0.5f), "Candle_Flame");
+            var candleLight = MakeLight(candle.transform, "CandleLight", new Vector3(0, 2f, 0), new Color(1f, 0.75f, 0.45f), 1.6f, 3.5f);
+            AddProp(candle, "Date", "candle");
+            var candleUse = candle.AddComponent<Interactable>();
+            candleUse.hintText = "Slide the candle closer to her";
+            candleUse.pulseTarget = candle.transform;
+            candleUse.eventTextTemplate = "The player slowly slid the candle toward Chloe. For romance. Allegedly.";
+            candleUse.cooldownSeconds = 8f;
+            candleUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("awkwardness", 6),
+                StatEffect.Delta("amusement", 4),
+            };
+
+            // wine glass (hers)
+            var wine = Prim(PrimitiveType.Cylinder, "WineGlass", table, new Vector3(0.3f, 0.9f, 0.25f), new Vector3(0.06f, 0.09f, 0.06f), "Wine_Red");
+            AddProp(wine, "Date", "wineGlass");
+
+            // her phone
+            var phone = Prim(PrimitiveType.Cube, "HerPhone", table, new Vector3(0.42f, 0.83f, 0.35f), new Vector3(0.1f, 0.015f, 0.18f), "Wheel_Black");
+            AddProp(phone, "Date", "herPhone");
+
+            // breadsticks
+            var bread = Prim(PrimitiveType.Cube, "Breadsticks", table, new Vector3(0.25f, 0.86f, -0.15f), new Vector3(0.3f, 0.08f, 0.16f), "Bread_Tan");
+            AddProp(bread, "Date", "breadsticks");
+            var breadUse = bread.AddComponent<Interactable>();
+            breadUse.hintText = "Stress-eat a breadstick";
+            breadUse.pulseTarget = bread.transform;
+            breadUse.eventTextTemplate = "The player grabbed a breadstick and ate it. Aggressively. Maintaining eye contact.";
+            breadUse.cooldownSeconds = 5f;
+            breadUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 4),
+                StatEffect.Delta("awkwardness", 3),
+            };
+
+            // the bill
+            var bill = Prim(PrimitiveType.Cube, "Bill", table, new Vector3(-0.35f, 0.83f, -0.25f), new Vector3(0.14f, 0.015f, 0.2f), "Napkin_White");
+            AddProp(bill, "Date", "bill");
+            var payBill = bill.AddComponent<Interactable>();
+            payBill.hintText = "Grab the bill — you've got this";
+            payBill.pulseTarget = bill.transform;
+            payBill.eventTextTemplate = "The player grabbed the bill and declared they were paying, with unearned confidence.";
+            payBill.cooldownSeconds = 15f;
+            payBill.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("interest", 6),
+            };
+
+            // your phone — a trap, obviously
+            var yourPhone = Prim(PrimitiveType.Cube, "YourPhone", table, new Vector3(-0.15f, 0.83f, -0.3f), new Vector3(0.1f, 0.015f, 0.18f), "Wheel_Black");
+            var checkPhone = yourPhone.AddComponent<Interactable>();
+            checkPhone.hintText = "Check your phone";
+            checkPhone.pulseTarget = yourPhone.transform;
+            checkPhone.eventTextTemplate = "The player pulled out their phone and checked it. Mid-date. In front of her.";
+            checkPhone.cooldownSeconds = 6f;
+            checkPhone.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 9),
+                StatEffect.Delta("interest", -5),
+            };
+
+            // background couples (set dressing)
+            BuildBackgroundCouple(room, new Vector3(-3.8f, 0, 3.4f), 30f);
+            BuildBackgroundCouple(room, new Vector3(3.8f, 0, 2.2f), -20f);
+
+            // --- Chloe ---
+            var chloe = BuildCharacter("Chloe", "date",
+                "Skin_Chloe", "Dress_Teal", "Chloe", standing: false, hairMat: "Hair_Brown");
+            chloe.transform.position = new Vector3(0, 0.55f, 0.85f);
+            chloe.transform.rotation = Quaternion.Euler(0, 180f, 0); // facing you
+            chloe.GetComponent<NPCActor>().canWalk = true; // she CAN leave
+
+            var chloeSpeaker = chloe.AddComponent<NpcSpeaker>();
+            chloeSpeaker.actorDisplayName = "Chloe";
+            chloeSpeaker.voiceName = "Zira";
+            chloeSpeaker.rate = 2;
+            chloeSpeaker.pitch = 2;
+            chloeSpeaker.wobble = chloe.GetComponent<WobbleAnimator>();
+
+            var locations = new GameObject("Locations").transform;
+            Location(locations, "TableSeat", new Vector3(0, 0.55f, 0.85f), 180f);
+            Location(locations, "Door", new Vector3(4.0f, 0, -5.2f), 180f);
+
+            // --- first-person camera (your seat) ---
+            var cameraHost = new GameObject("PlayerSeat");
+            cameraHost.transform.position = new Vector3(0, 0, -0.85f);
+            var (cameraGo, rig, raycaster) = BuildPlayerCamera(cameraHost.transform, new Vector3(0, 1.35f, 0), 120f);
+            raycaster.range = 1.8f; // table reach
+
+            WireGameSystems(
+                "Assets/GameData/Scenarios/Date/Date_Scenario.asset",
+                cameraGo, rig, raycaster,
+                "Hold V to talk  ·  Enter to type  ·  Click things on the table",
+                includeHarness: false);
+
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/Date.unity");
+            Debug.Log("[TalkOut] Date scene built.");
+        }
+
+        private static void BuildBackgroundCouple(Transform room, Vector3 position, float yaw)
+        {
+            var spot = new GameObject("BgTable").transform;
+            spot.SetParent(room, false);
+            spot.position = position;
+            spot.rotation = Quaternion.Euler(0, yaw, 0);
+            Prim(PrimitiveType.Cube, "Top", spot, new Vector3(0, 0.78f, 0), new Vector3(1.1f, 0.06f, 0.8f), "Table_Cloth");
+            Prim(PrimitiveType.Cylinder, "Leg", spot, new Vector3(0, 0.4f, 0), new Vector3(0.14f, 0.4f, 0.14f), "Tree_Trunk");
+            foreach (float z in new[] { 0.7f, -0.7f })
+            {
+                var person = new GameObject("Patron").transform;
+                person.SetParent(spot, false);
+                person.localPosition = new Vector3(0, 0.55f, z);
+                person.localRotation = Quaternion.Euler(0, z > 0 ? 180f : 0f, 0);
+                StripCollider(Prim(PrimitiveType.Cube, "Body", person, new Vector3(0, 0.42f, 0), new Vector3(0.5f, 0.75f, 0.3f), z > 0 ? "Shirt_Loud" : "Uniform_Navy"));
+                StripCollider(Prim(PrimitiveType.Cube, "Head", person, new Vector3(0, 1.0f, 0), new Vector3(0.4f, 0.4f, 0.4f), "Skin_Passenger"));
+            }
+        }
+
+        // ====================================================================
+        // MAIN MENU
+        // ====================================================================
+        private static void BuildMainMenuScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var cameraGo = new GameObject("Main Camera");
+            cameraGo.tag = "MainCamera";
+            var camera = cameraGo.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.05f, 0.055f, 0.09f);
+            cameraGo.AddComponent<AudioListener>();
+
+            var uiGo = new GameObject("UI");
+            var uiDoc = uiGo.AddComponent<UIDocument>();
+            uiDoc.panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/UI/TalkOutPanelSettings.asset");
+            uiDoc.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenu.uxml");
+            var menu = uiGo.AddComponent<MainMenuController>();
+            menu.llmConfig = AssetDatabase.LoadAssetAtPath<LlmConfig>("Assets/GameData/LlmConfig.asset");
+            menu.levels = new System.Collections.Generic.List<MainMenuController.LevelEntry>
+            {
+                new MainMenuController.LevelEntry
+                {
+                    sceneName = "TrafficStop",
+                    scenarioId = "traffic_stop",
+                    title = "LEVEL 1 — TRAFFIC STOP",
+                    description = "Talk your way out of the ticket. The hamster is not helping."
+                },
+                new MainMenuController.LevelEntry
+                {
+                    sceneName = "Date",
+                    scenarioId = "the_date",
+                    title = "LEVEL 2 — THE DATE",
+                    description = "Convince Chloe to give you a second date. Do not mention the car."
+                },
+            };
+
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainMenu.unity");
+        }
+
+        // ====================================================================
+        // shared helpers
+        // ====================================================================
+
+        private static (GameObject cameraGo, FirstPersonRig rig, InteractionRaycaster raycaster)
+            BuildPlayerCamera(Transform parent, Vector3 localPos, float maxYaw)
+        {
             var cameraGo = new GameObject("PlayerCamera");
             cameraGo.tag = "MainCamera";
-            cameraGo.transform.SetParent(playerCar, false);
-            cameraGo.transform.localPosition = new Vector3(-0.42f, 1.3f, -0.1f);
+            cameraGo.transform.SetParent(parent, false);
+            cameraGo.transform.localPosition = localPos;
             var camera = cameraGo.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.Skybox;
             camera.fieldOfView = 62f;
             camera.nearClipPlane = 0.08f;
             cameraGo.AddComponent<AudioListener>();
             var rig = cameraGo.AddComponent<FirstPersonRig>();
+            rig.maxYaw = maxYaw;
             var raycaster = cameraGo.AddComponent<InteractionRaycaster>();
             raycaster.playerCamera = camera;
-
             SetupPostProcessing(cameraGo);
+            return (cameraGo, rig, raycaster);
+        }
 
-            // --- systems ---
+        private static TurnController WireGameSystems(
+            string scenarioPath, GameObject cameraGo, FirstPersonRig rig,
+            InteractionRaycaster raycaster, string micHint, bool includeHarness)
+        {
             var systems = new GameObject("Systems");
             var turnController = systems.AddComponent<TurnController>();
             var gameManager = systems.AddComponent<GameManager>();
             var propRegistry = systems.AddComponent<PropRegistry>();
             var performer = systems.AddComponent<WorldPerformer>();
             var statsOverlay = systems.AddComponent<DebugStatsOverlay>();
-            var harness = systems.AddComponent<DirectorTestHarness>();
 
-            var scenario = AssetDatabase.LoadAssetAtPath<ScenarioDefinition>(
-                "Assets/GameData/Scenarios/TrafficStop/TrafficStop_Scenario.asset");
+            var scenario = AssetDatabase.LoadAssetAtPath<ScenarioDefinition>(scenarioPath);
             var llmConfig = AssetDatabase.LoadAssetAtPath<LlmConfig>("Assets/GameData/LlmConfig.asset");
 
             gameManager.scenario = scenario;
@@ -283,10 +604,15 @@ namespace TalkOut.EditorTools
             performer.turnController = turnController;
             performer.propRegistry = propRegistry;
             statsOverlay.turnController = turnController;
-            harness.turnController = turnController;
-            harness.corpus = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/GameData/TestCorpus.txt");
 
-            // --- LLM stack: one server, two agents (cop voice + judge) ---
+            if (includeHarness)
+            {
+                var harness = systems.AddComponent<DirectorTestHarness>();
+                harness.turnController = turnController;
+                harness.corpus = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/GameData/TestCorpus.txt");
+            }
+
+            // LLM stack: one server, two agents (voice + judge)
             var llmGo = new GameObject("LLM");
             llmGo.transform.SetParent(systems.transform);
             var llm = llmGo.AddComponent<LLM>();
@@ -314,13 +640,12 @@ namespace TalkOut.EditorTools
             gameManager.llmCopBrain = copBrain;
             gameManager.llmJudge = judge;
 
-            // --- Whisper voice input ---
+            // Whisper voice input
             var whisperGo = new GameObject("Whisper");
             whisperGo.transform.SetParent(systems.transform);
             var whisper = whisperGo.AddComponent<WhisperManager>();
             var whisperSo = new SerializedObject(whisper);
-            TrySet(whisperSo, new[] { "modelPath", "_modelPath" },
-                p => p.stringValue = "Models/ggml-base.en.bin");
+            TrySet(whisperSo, new[] { "modelPath", "_modelPath" }, p => p.stringValue = "Models/ggml-base.en.bin");
             TrySet(whisperSo, new[] { "isModelPathInStreamingAssets" }, p => p.boolValue = true);
             TrySet(whisperSo, new[] { "language" }, p => p.stringValue = "en");
             whisperSo.ApplyModifiedPropertiesWithoutUndo();
@@ -329,7 +654,7 @@ namespace TalkOut.EditorTools
             voiceInput.whisper = whisper;
             voiceInput.turnController = turnController;
 
-            // --- UI ---
+            // UI
             var uiGo = new GameObject("UI");
             var uiDoc = uiGo.AddComponent<UIDocument>();
             uiDoc.panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/UI/TalkOutPanelSettings.asset");
@@ -339,123 +664,16 @@ namespace TalkOut.EditorTools
             dialogue.firstPersonRig = rig;
             dialogue.raycaster = raycaster;
             dialogue.voiceInput = voiceInput;
+            dialogue.micHintText = micHint;
 
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/TrafficStop.unity");
-            Debug.Log("[TalkOut] TrafficStop scene built (first-person).");
+            return turnController;
         }
-
-        // ====================================================================
-        private static void BuildInteractables(Transform playerCar)
-        {
-            // glove box with a hinged lid and a mystery item
-            var gloveBox = new GameObject("GloveBox");
-            gloveBox.transform.SetParent(playerCar, false);
-            gloveBox.transform.localPosition = new Vector3(0.38f, 0.92f, 0.88f);
-            Prim(PrimitiveType.Cube, "Box", gloveBox.transform, new Vector3(0, 0, 0.05f), new Vector3(0.42f, 0.18f, 0.16f), "Car_Interior");
-            var lidPivot = new GameObject("LidPivot").transform;
-            lidPivot.SetParent(gloveBox.transform, false);
-            lidPivot.localPosition = new Vector3(0, -0.09f, -0.04f);
-            Prim(PrimitiveType.Cube, "Lid", lidPivot, new Vector3(0, 0.09f, 0), new Vector3(0.42f, 0.17f, 0.03f), "Prop_Generic");
-            var glove = gloveBox.AddComponent<Interactable>();
-            glove.hintText = "Open glove box";
-            glove.isToggle = true;
-            glove.hinge = lidPivot;
-            glove.openEuler = new Vector3(-95f, 0, 0);
-            glove.eventTextTemplate = "The driver opened the glove compartment in front of the officer. Inside: {item}.";
-            glove.eventTextClose = "The driver quietly closed the glove compartment.";
-            glove.randomContents = new[]
-            {
-                "a single taco sauce packet labeled 'FIRE'",
-                "roughly forty unpaid parking tickets",
-                "a live hamster in a tiny sombrero",
-                "an expired coupon for one free hug",
-                "a harmonica and a note that says 'in case of emergency'",
-                "a half-eaten birthday cake",
-            };
-
-            // horn
-            var wheel = Prim(PrimitiveType.Cube, "SteeringWheel", playerCar,
-                new Vector3(-0.42f, 1.02f, 0.72f), new Vector3(0.34f, 0.28f, 0.07f), "Wheel_Black");
-            var hornAudio = wheel.AddComponent<AudioSource>();
-            hornAudio.playOnAwake = false;
-            hornAudio.spatialBlend = 1f;
-            wheel.AddComponent<ToneGenerator>();
-            var horn = wheel.AddComponent<Interactable>();
-            horn.hintText = "Honk the horn";
-            horn.pulseTarget = wheel.transform;
-            horn.audioSource = hornAudio;
-            horn.eventTextTemplate = "The driver honked the horn. At a police officer. During a traffic stop.";
-            horn.cooldownSeconds = 3f;
-            horn.immediateEffects = new System.Collections.Generic.List<StatEffect>
-            {
-                StatEffect.Delta("annoyance", 8),
-                StatEffect.Delta("suspicion", 3),
-            };
-
-            // car radio
-            var carRadio = Prim(PrimitiveType.Cube, "CarRadio", playerCar,
-                new Vector3(0f, 0.98f, 0.9f), new Vector3(0.28f, 0.1f, 0.06f), "Prop_Generic");
-            var radioToggle = carRadio.AddComponent<Interactable>();
-            radioToggle.hintText = "Turn on the radio";
-            radioToggle.isToggle = true;
-            radioToggle.pulseTarget = carRadio.transform;
-            radioToggle.eventTextTemplate = "The driver turned on the car radio. Extremely loud polka music fills the night.";
-            radioToggle.eventTextClose = "The driver sheepishly turned the radio back off.";
-            radioToggle.immediateEffects = new System.Collections.Generic.List<StatEffect>
-            {
-                StatEffect.Delta("annoyance", 6),
-            };
-
-            // sunglasses
-            var shades = Prim(PrimitiveType.Cube, "Sunglasses", playerCar,
-                new Vector3(0.15f, 1.02f, 0.95f), new Vector3(0.18f, 0.03f, 0.07f), "Wheel_Black");
-            var shadesUse = shades.AddComponent<Interactable>();
-            shadesUse.hintText = "Put on sunglasses";
-            shadesUse.pulseTarget = shades.transform;
-            shadesUse.eventTextTemplate = "The driver slowly put on sunglasses. It is currently the middle of the night.";
-            shadesUse.cooldownSeconds = 8f;
-            shadesUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
-            {
-                StatEffect.Delta("amusement", 5),
-                StatEffect.Delta("annoyance", 3),
-            };
-
-            // opening the glove box in front of a cop is... a choice
-            glove.immediateEffects = new System.Collections.Generic.List<StatEffect>
-            {
-                StatEffect.Delta("suspicion", 7),
-            };
-        }
-
-        // ====================================================================
-        private static void BuildMainMenuScene()
-        {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-
-            var cameraGo = new GameObject("Main Camera");
-            cameraGo.tag = "MainCamera";
-            var camera = cameraGo.AddComponent<Camera>();
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.04f, 0.05f, 0.08f);
-            cameraGo.AddComponent<AudioListener>();
-
-            var uiGo = new GameObject("UI");
-            var uiDoc = uiGo.AddComponent<UIDocument>();
-            uiDoc.panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>("Assets/UI/TalkOutPanelSettings.asset");
-            uiDoc.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenu.uxml");
-            var menu = uiGo.AddComponent<MainMenuController>();
-            menu.llmConfig = AssetDatabase.LoadAssetAtPath<LlmConfig>("Assets/GameData/LlmConfig.asset");
-
-            EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainMenu.unity");
-        }
-
-        // ====================================================================
-        // helpers
 
         /// Wobbly character: legs + hip TorsoPivot (kinematic RB) carrying body,
-        /// head w/ face quad, and two physics-jointed floppy arms.
+        /// head w/ face quad, physics floppy arms, optional hat or hair.
         private static GameObject BuildCharacter(
-            string name, string actorId, string skinMat, string shirtMat, string faceSetName, bool standing)
+            string name, string actorId, string skinMat, string shirtMat, string faceSetName,
+            bool standing, string hatMat = null, string hairMat = null)
         {
             var root = new GameObject(name);
             var t = root.transform;
@@ -476,6 +694,17 @@ namespace TalkOut.EditorTools
             var body = StripCollider(Prim(PrimitiveType.Cube, "Body", torsoPivot, new Vector3(0, 0.42f, 0), new Vector3(0.55f, 0.8f, 0.32f), shirtMat));
             var head = StripCollider(Prim(PrimitiveType.Cube, "Head", torsoPivot, new Vector3(0, 1.06f, 0), new Vector3(0.45f, 0.45f, 0.45f), skinMat));
 
+            if (hatMat != null)
+            {
+                StripCollider(Prim(PrimitiveType.Cube, "HatBrim", head.transform, new Vector3(0, 0.5f, 0.15f), new Vector3(1.15f, 0.08f, 1.25f), hatMat));
+                StripCollider(Prim(PrimitiveType.Cube, "HatTop", head.transform, new Vector3(0, 0.62f, -0.05f), new Vector3(0.95f, 0.3f, 0.95f), hatMat));
+            }
+            if (hairMat != null)
+            {
+                StripCollider(Prim(PrimitiveType.Cube, "HairTop", head.transform, new Vector3(0, 0.52f, -0.05f), new Vector3(1.1f, 0.25f, 1.05f), hairMat));
+                StripCollider(Prim(PrimitiveType.Cube, "HairBack", head.transform, new Vector3(0, 0.05f, -0.52f), new Vector3(1.05f, 1.0f, 0.18f), hairMat));
+            }
+
             var faceQuad = Prim(PrimitiveType.Quad, "FaceQuad", head.transform, new Vector3(0, 0, 0.51f), Vector3.one * 0.92f, null);
             faceQuad.transform.localRotation = Quaternion.Euler(0, 180f, 0);
             faceQuad.GetComponent<Renderer>().sharedMaterial =
@@ -487,8 +716,7 @@ namespace TalkOut.EditorTools
 
             var face = root.AddComponent<FaceController>();
             face.faceRenderer = faceQuad.GetComponent<Renderer>();
-            face.faceSet = AssetDatabase.LoadAssetAtPath<FaceSet>(
-                $"Assets/GameData/Scenarios/TrafficStop/Faces/{faceSetName}_FaceSet.asset");
+            face.faceSet = FindFaceSet(faceSetName);
 
             var wobble = root.AddComponent<WobbleAnimator>();
             wobble.torsoPivot = torsoPivot;
@@ -502,8 +730,17 @@ namespace TalkOut.EditorTools
             return root;
         }
 
-        /// Dangling arm: dynamic rigidbody + CharacterJoint anchored at the
-        /// shoulder. It flops when the body wobbles/walks — free physical comedy.
+        private static FaceSet FindFaceSet(string faceSetName)
+        {
+            foreach (var guid in AssetDatabase.FindAssets($"{faceSetName}_FaceSet t:FaceSet"))
+            {
+                var faceSet = AssetDatabase.LoadAssetAtPath<FaceSet>(AssetDatabase.GUIDToAssetPath(guid));
+                if (faceSet != null) return faceSet;
+            }
+            Debug.LogWarning($"[TalkOut] FaceSet '{faceSetName}_FaceSet' not found.");
+            return null;
+        }
+
         private static void MakeFloppyArm(Transform torsoPivot, Rigidbody torsoRb, string name, Vector3 shoulderLocal, string mat)
         {
             var arm = Prim(PrimitiveType.Cube, name, torsoPivot,
@@ -519,7 +756,7 @@ namespace TalkOut.EditorTools
 
             var joint = arm.AddComponent<CharacterJoint>();
             joint.connectedBody = torsoRb;
-            joint.anchor = new Vector3(0, 0.5f, 0); // top of the arm cube
+            joint.anchor = new Vector3(0, 0.5f, 0);
             joint.enableProjection = true;
             var lowTwist = joint.lowTwistLimit; lowTwist.limit = -20f; joint.lowTwistLimit = lowTwist;
             var highTwist = joint.highTwistLimit; highTwist.limit = 20f; joint.highTwistLimit = highTwist;
@@ -530,29 +767,31 @@ namespace TalkOut.EditorTools
         private static void SetupPostProcessing(GameObject cameraGo)
         {
             string profilePath = "Assets/GameData/TalkOutPostFX.asset";
-            AssetDatabase.DeleteAsset(profilePath);
-            var profile = ScriptableObject.CreateInstance<PostProcessProfile>();
-            AssetDatabase.CreateAsset(profile, profilePath);
+            var profile = AssetDatabase.LoadAssetAtPath<PostProcessProfile>(profilePath);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<PostProcessProfile>();
+                AssetDatabase.CreateAsset(profile, profilePath);
 
-            var bloom = profile.AddSettings<Bloom>();
-            bloom.enabled.Override(true);
-            bloom.intensity.Override(2.6f);
-            bloom.threshold.Override(1.05f);
-            bloom.softKnee.Override(0.6f);
+                var bloom = profile.AddSettings<Bloom>();
+                bloom.enabled.Override(true);
+                bloom.intensity.Override(2.6f);
+                bloom.threshold.Override(1.05f);
+                bloom.softKnee.Override(0.6f);
 
-            var vignette = profile.AddSettings<Vignette>();
-            vignette.enabled.Override(true);
-            vignette.intensity.Override(0.3f);
-            vignette.smoothness.Override(0.5f);
+                var vignette = profile.AddSettings<Vignette>();
+                vignette.enabled.Override(true);
+                vignette.intensity.Override(0.3f);
+                vignette.smoothness.Override(0.5f);
 
-            var grading = profile.AddSettings<ColorGrading>();
-            grading.enabled.Override(true);
-            grading.tonemapper.Override(Tonemapper.ACES);
-            grading.saturation.Override(10f);
-            grading.contrast.Override(12f);
-            grading.temperature.Override(-6f); // cold night
+                var grading = profile.AddSettings<ColorGrading>();
+                grading.enabled.Override(true);
+                grading.tonemapper.Override(Tonemapper.ACES);
+                grading.saturation.Override(10f);
+                grading.contrast.Override(12f);
 
-            EditorUtility.SetDirty(profile);
+                EditorUtility.SetDirty(profile);
+            }
 
             var volumeGo = new GameObject("PostFXVolume") { layer = PostFxLayer };
             var volume = volumeGo.AddComponent<PostProcessVolume>();
@@ -564,8 +803,6 @@ namespace TalkOut.EditorTools
             layer.volumeTrigger = cameraGo.transform;
             layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
 
-            // AddComponent from script skips the inspector's auto-init: wire the
-            // package's PostProcessResources or effects won't render.
             string[] guids = AssetDatabase.FindAssets("t:PostProcessResources");
             if (guids.Length > 0)
             {
@@ -580,16 +817,12 @@ namespace TalkOut.EditorTools
                     layerSo.ApplyModifiedPropertiesWithoutUndo();
                 }
             }
-            else
-            {
-                Debug.LogWarning("[TalkOut] PostProcessResources not found — post FX may not render.");
-            }
         }
 
         private static Light MakeLight(Transform parent, string name, Vector3 localPos, Color color, float intensity, float range)
         {
             var light = new GameObject(name).AddComponent<Light>();
-            light.transform.SetParent(parent, false);
+            if (parent != null) light.transform.SetParent(parent, false);
             light.transform.localPosition = localPos;
             light.type = LightType.Point;
             light.color = color;
@@ -621,11 +854,11 @@ namespace TalkOut.EditorTools
             return go;
         }
 
-        private static void AddProp(GameObject go, string propId)
+        private static void AddProp(GameObject go, string scenarioFolder, string propId)
         {
             var sceneProp = go.AddComponent<SceneProp>();
             sceneProp.definition = AssetDatabase.LoadAssetAtPath<PropDefinition>(
-                $"Assets/GameData/Scenarios/TrafficStop/Props/{propId}.asset");
+                $"Assets/GameData/Scenarios/{scenarioFolder}/Props/{propId}.asset");
             sceneProp.targetRenderer = go.GetComponent<Renderer>();
         }
 

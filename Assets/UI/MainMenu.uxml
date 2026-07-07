@@ -1,11 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="MainMenu.uss" />
     <ui:VisualElement name="root" class="menu-root">
-        <ui:Label text="TALK OUT" class="title" />
-        <ui:Label text="Talk your way out of anything. Or into everything." class="subtitle" />
-        <ui:Button name="play-button" text="Scenario 001: Traffic Stop" class="menu-button" />
-        <ui:Label name="stats-label" text="" class="stats" />
+        <ui:Label name="tagline" text="YOUR MOUTH. YOUR ONLY WAY OUT." class="tagline" />
+        <ui:Label name="title" text="TALK&lt;color=#F5C518&gt;OUT&lt;/color&gt;" class="title" enable-rich-text="true" />
+        <ui:Label text="THE HILARIOUS PERSUASION GAME" class="subtitle" />
+
+        <ui:VisualElement name="levels" class="levels" />
+
         <ui:Label name="model-status" text="" class="model-status" />
-        <ui:Button name="quit-button" text="Quit" class="menu-button quit" />
+        <ui:Button name="quit-button" text="QUIT" class="quit-button" />
     </ui:VisualElement>
 </ui:UXML>

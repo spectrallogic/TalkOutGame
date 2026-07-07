@@ -37,6 +37,9 @@ namespace TalkOut.Core
 
         public IReadOnlyList<GameEvent> Events => events;
 
+        /// How the player is named in LLM transcripts ("Driver", "Date"...).
+        public string PlayerLabel = "Driver";
+
         public void Add(GameEvent gameEvent)
         {
             events.Add(gameEvent);
@@ -58,7 +61,7 @@ namespace TalkOut.Core
                 switch (e.kind)
                 {
                     case EventKind.PlayerSaid:
-                        sb.AppendLine($"Driver: \"{e.text}\"");
+                        sb.AppendLine($"{PlayerLabel}: \"{e.text}\"");
                         break;
                     case EventKind.NpcSaid:
                         sb.AppendLine($"{e.actor}: \"{e.text}\"");

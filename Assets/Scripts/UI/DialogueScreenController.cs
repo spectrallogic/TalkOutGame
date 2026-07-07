@@ -18,14 +18,20 @@ namespace TalkOut.UI
         public InteractionRaycaster raycaster;
         public VoiceInput voiceInput;
 
+        [Tooltip("Scene-specific control hint; empty keeps the UXML default")]
+        public string micHintText = "";
+
         private ScrollView historyView;
         private VisualElement inputRow;
         private TextField inputField;
         private Label thinkingLabel;
         private Label interactHint;
         private Label micStatus;
+        private Label goalBanner;
+        private Label timerLabel;
         private VisualElement outcomeOverlay;
         private Label outcomeTitle;
+        private Label outcomeTime;
         private Label outcomeText;
 
         private Label liveNpcLabel;
@@ -43,9 +49,13 @@ namespace TalkOut.UI
             thinkingLabel = root.Q<Label>("thinking");
             interactHint = root.Q<Label>("interact-hint");
             micStatus = root.Q<Label>("mic-status");
+            goalBanner = root.Q<Label>("goal-banner");
+            timerLabel = root.Q<Label>("timer");
             outcomeOverlay = root.Q<VisualElement>("outcome-overlay");
             outcomeTitle = root.Q<Label>("outcome-title");
+            outcomeTime = root.Q<Label>("outcome-time");
             outcomeText = root.Q<Label>("outcome-text");
+            if (!string.IsNullOrEmpty(micHintText)) micStatus.text = micHintText;
             defaultMicText = micStatus.text;
 
             root.Q<Button>("submit-button").clicked += SubmitTyped;
@@ -117,6 +127,12 @@ namespace TalkOut.UI
                 turnController.Log.EventAdded += OnEvent;
                 attachedToLog = true;
                 foreach (var e in turnController.Log.Events) OnEvent(e);
+                goalBanner.text = $"<color=#F5C518>GOAL:</color>  {turnController.Scenario.playerGoal}";
+            }
+
+            if (turnController != null && timerLabel != null)
+            {
+                timerLabel.text = FormatTime(turnController.ElapsedSeconds);
             }
 
             if (!chatMode && Input.GetKeyDown(KeyCode.Return))
@@ -233,9 +249,16 @@ namespace TalkOut.UI
             micStatus.EnableInClassList("transcribing", transcribing);
         }
 
+        private static string FormatTime(float seconds)
+        {
+            int total = Mathf.FloorToInt(seconds);
+            return $"{total / 60}:{total % 60:00}";
+        }
+
         private void OnSceneEnded(OutcomeRule outcome)
         {
             outcomeTitle.text = (outcome.isWin ? "🎉 " : "🚨 ") + outcome.title;
+            outcomeTime.text = $"⏱ {FormatTime(turnController.ElapsedSeconds)}";
             outcomeText.text = outcome.resultText;
             outcomeOverlay.style.display = DisplayStyle.Flex;
             if (firstPersonRig != null)

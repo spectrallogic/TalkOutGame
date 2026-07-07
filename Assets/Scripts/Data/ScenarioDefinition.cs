@@ -18,6 +18,18 @@ namespace TalkOut.Data
         [Tooltip("Fixed line the main NPC always opens the scene with")]
         [TextArea(2, 4)] public string openerLine;
 
+        [Tooltip("How the NPC/judge refer to the player, e.g. 'the driver', 'your date'")]
+        public string playerLabel = "the driver";
+
+        [Tooltip("Short label used in transcripts, e.g. 'Driver', 'Date'")]
+        public string playerTranscriptName = "Driver";
+
+        [Tooltip("Outcome id when the judge rules the player won (released)")]
+        public string winOutcomeId = "talked_out";
+
+        [Tooltip("Outcome id when the judge rules the situation ended badly (arrested)")]
+        public string loseOutcomeId = "arrest";
+
         [Tooltip("Instructions for the judge LLM: what counts as the player winning (released) or losing (arrested)")]
         [TextArea(3, 8)] public string judgeGuidance;
 

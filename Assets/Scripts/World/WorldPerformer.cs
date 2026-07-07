@@ -48,14 +48,16 @@ namespace TalkOut.World
 
         private void OnCopMood(string mood)
         {
-            // Judge's mood ruling drives the main NPC's face; the passenger
-            // panics whenever things look bad for the car.
-            if (actors.TryGetValue("officer", out var officer) && officer.face != null)
+            // Judge's mood ruling drives the main NPC's face; a sidekick
+            // (Benny-style "passenger" actor) panics whenever things look bad.
+            string mainId = turnController != null && turnController.Scenario != null
+                ? turnController.Scenario.respondingNpcId : "officer";
+            if (actors.TryGetValue(mainId, out var main) && main.face != null)
             {
-                officer.face.SetFace(mood);
-                if (officer.wobble != null && (mood == "angry" || mood == "amused"))
+                main.face.SetFace(mood);
+                if (main.wobble != null && (mood == "angry" || mood == "amused"))
                 {
-                    officer.wobble.Impulse(0.7f);
+                    main.wobble.Impulse(0.7f);
                 }
             }
             if (actors.TryGetValue("passenger", out var passenger) && passenger.face != null)

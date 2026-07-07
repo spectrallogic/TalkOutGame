@@ -64,7 +64,8 @@ namespace TalkOut.Core
 
             var performer = FindObjectOfType<WorldPerformer>();
             turnController.Initialize(scenario, copBrain, judge, performer);
-            turnController.SceneEnded += outcome => SaveSystem.RecordOutcome(scenario.scenarioId, outcome);
+            turnController.SceneEnded += outcome =>
+                SaveSystem.RecordOutcome(scenario.scenarioId, outcome, turnController.ElapsedSeconds);
 
             foreach (var speaker in FindObjectsOfType<NpcSpeaker>())
             {

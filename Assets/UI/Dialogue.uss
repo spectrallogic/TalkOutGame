@@ -1,17 +1,58 @@
+/* Cover style: chunky black chips, yellow accents, white comic bubbles. */
+
 .root {
     flex-grow: 1;
+}
+
+.chip {
+    background-color: rgba(8, 8, 10, 0.88);
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
+    padding: 8px 16px;
+    color: rgb(245, 245, 245);
+    -unity-font-style: bold;
+}
+
+.top-bar {
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.goal-banner {
+    font-size: 19px;
+    max-width: 62%;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.timer {
+    position: absolute;
+    right: 18px;
+    top: 0;
+    font-size: 22px;
+    color: rgb(245, 197, 24);
+    min-width: 92px;
+    -unity-text-align: middle-center;
 }
 
 .crosshair {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 6px;
-    height: 6px;
-    margin-left: -3px;
-    margin-top: -3px;
-    border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.75);
+    width: 7px;
+    height: 7px;
+    margin-left: -4px;
+    margin-top: -4px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.8);
 }
 
 .interact-hint {
@@ -20,77 +61,92 @@
     right: 0;
     top: 54%;
     -unity-text-align: middle-center;
-    font-size: 15px;
-    color: rgb(255, 230, 140);
-    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+    text-shadow: 2px 2px 0 rgb(0, 0, 0);
 }
 
 .chat-panel {
     position: absolute;
     left: 18px;
-    bottom: 64px;
-    width: 44%;
-    min-width: 420px;
-    max-width: 700px;
+    bottom: 70px;
+    width: 46%;
+    min-width: 460px;
+    max-width: 760px;
 }
 
 .history {
-    max-height: 300px;
+    max-height: 320px;
 }
 
 .line {
     white-space: normal;
-    margin: 2px 0;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 14px;
+    margin: 3px 0;
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 17px;
     align-self: flex-start;
     max-width: 95%;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
 }
 
-.line-player {
-    background-color: rgba(30, 70, 46, 0.82);
-    color: rgb(224, 245, 230);
-}
-
+/* comic speech bubble: NPC = white, black text */
 .line-npc {
-    background-color: rgba(28, 36, 62, 0.85);
-    color: rgb(232, 236, 248);
+    background-color: rgb(248, 246, 240);
+    color: rgb(16, 16, 18);
+    -unity-font-style: bold;
+}
+
+/* player = yellow, black text */
+.line-player {
+    background-color: rgb(245, 197, 24);
+    color: rgb(16, 16, 18);
+    -unity-font-style: bold;
+    align-self: flex-end;
 }
 
 .line-beat {
     -unity-font-style: italic;
-    color: rgb(190, 196, 214);
-    background-color: rgba(0, 0, 0, 0.35);
-    font-size: 13px;
+    color: rgb(220, 222, 230);
+    background-color: rgba(8, 8, 10, 0.72);
+    font-size: 15px;
 }
 
 .line-system {
-    color: rgb(216, 205, 150);
-    background-color: rgba(50, 46, 24, 0.6);
-    font-size: 13px;
+    color: rgb(245, 197, 24);
+    background-color: rgba(8, 8, 10, 0.8);
+    font-size: 15px;
 }
 
 .input-row {
     flex-direction: row;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 .input-field {
     flex-grow: 1;
-    height: 34px;
-    font-size: 14px;
+    height: 40px;
+    font-size: 17px;
 }
 
 .submit-button {
-    height: 34px;
-    border-radius: 8px;
-    padding: 0 14px;
-    margin-left: 6px;
-    background-color: rgb(66, 108, 210);
-    color: white;
+    height: 40px;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
+    padding: 0 18px;
+    margin-left: 8px;
+    background-color: rgb(245, 197, 24);
+    color: rgb(16, 16, 18);
+    -unity-font-style: bold;
+    font-size: 15px;
+}
+
+.submit-button:hover {
+    background-color: rgb(255, 215, 60);
 }
 
 .status-row {
@@ -104,17 +160,15 @@
 }
 
 .thinking {
-    font-size: 14px;
-    -unity-font-style: italic;
+    font-size: 15px;
     color: rgb(140, 200, 255);
-    margin-right: 16px;
-    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    margin-right: 14px;
 }
 
 .mic-status {
-    font-size: 13px;
-    color: rgba(230, 234, 246, 0.75);
-    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    font-size: 14px;
+    color: rgba(240, 240, 245, 0.9);
+    -unity-font-style: normal;
 }
 
 .mic-status.listening {
@@ -123,7 +177,7 @@
 }
 
 .mic-status.transcribing {
-    color: rgb(255, 210, 120);
+    color: rgb(245, 197, 24);
     -unity-font-style: italic;
 }
 
@@ -133,36 +187,43 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.66);
+    background-color: rgba(0, 0, 0, 0.7);
     justify-content: center;
     align-items: center;
 }
 
 .outcome-card {
-    width: 480px;
-    padding: 26px;
-    background-color: rgb(18, 22, 34);
-    border-radius: 14px;
-    border-width: 1px;
-    border-color: rgba(150, 170, 220, 0.5);
+    width: 540px;
+    padding: 30px;
+    background-color: rgb(14, 14, 18);
+    border-radius: 18px;
+    border-width: 3px;
+    border-color: rgb(245, 197, 24);
     align-items: center;
 }
 
 .outcome-title {
-    font-size: 26px;
+    font-size: 34px;
     -unity-font-style: bold;
-    color: rgb(240, 240, 250);
-    margin-bottom: 12px;
+    color: rgb(248, 246, 240);
+    margin-bottom: 6px;
     white-space: normal;
     -unity-text-align: middle-center;
 }
 
+.outcome-time {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+    margin-bottom: 12px;
+}
+
 .outcome-text {
-    font-size: 15px;
-    color: rgb(200, 206, 222);
+    font-size: 17px;
+    color: rgb(210, 214, 226);
     white-space: normal;
     -unity-text-align: middle-center;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .outcome-buttons {
@@ -170,11 +231,21 @@
 }
 
 .outcome-button {
-    height: 36px;
-    border-radius: 8px;
-    padding: 0 18px;
-    margin: 0 6px;
-    font-size: 14px;
+    height: 44px;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
+    padding: 0 22px;
+    margin: 0 8px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    background-color: rgb(245, 197, 24);
+    color: rgb(16, 16, 18);
+}
+
+.outcome-button.secondary {
+    background-color: rgb(50, 54, 66);
+    color: rgb(240, 240, 245);
 }
 
 .hidden {

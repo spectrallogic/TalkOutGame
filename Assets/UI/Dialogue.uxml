@@ -2,6 +2,11 @@
     <Style src="Dialogue.uss" />
     <ui:VisualElement name="root" class="root">
 
+        <ui:VisualElement name="top-bar" class="top-bar">
+            <ui:Label name="goal-banner" text="" class="chip goal-banner" enable-rich-text="true" />
+            <ui:Label name="timer" text="0:00" class="chip timer" />
+        </ui:VisualElement>
+
         <ui:VisualElement name="crosshair" class="crosshair" />
         <ui:Label name="interact-hint" text="" class="interact-hint hidden" />
 
@@ -9,22 +14,23 @@
             <ui:ScrollView name="history" class="history" />
             <ui:VisualElement name="input-row" class="input-row hidden">
                 <ui:TextField name="input-field" class="input-field" />
-                <ui:Button name="submit-button" text="Say" class="submit-button" />
+                <ui:Button name="submit-button" text="SAY IT" class="submit-button" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="status-row" class="status-row">
-            <ui:Label name="thinking" text="" class="thinking hidden" />
-            <ui:Label name="mic-status" text="Hold V to talk · Enter to type · Click things in the car" class="mic-status" />
+            <ui:Label name="thinking" text="" class="chip thinking hidden" />
+            <ui:Label name="mic-status" text="Hold V to talk  ·  Enter to type  ·  Click things in the car" class="chip mic-status" />
         </ui:VisualElement>
 
         <ui:VisualElement name="outcome-overlay" class="outcome-overlay hidden">
             <ui:VisualElement name="outcome-card" class="outcome-card">
                 <ui:Label name="outcome-title" text="" class="outcome-title" />
+                <ui:Label name="outcome-time" text="" class="outcome-time" />
                 <ui:Label name="outcome-text" text="" class="outcome-text" />
                 <ui:VisualElement name="outcome-buttons" class="outcome-buttons">
-                    <ui:Button name="retry-button" text="Try Again" class="outcome-button" />
-                    <ui:Button name="menu-button" text="Main Menu" class="outcome-button" />
+                    <ui:Button name="retry-button" text="TRY AGAIN" class="outcome-button" />
+                    <ui:Button name="menu-button" text="MAIN MENU" class="outcome-button secondary" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

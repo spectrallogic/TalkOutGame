@@ -31,6 +31,10 @@ namespace TalkOut.Core
         public int PlayerTurnsTaken { get; private set; }
         public JudgeVerdict LastVerdict { get; private set; }
 
+        /// Level timer: runs from the moment the player can act until the scene ends.
+        public float ElapsedSeconds { get; private set; }
+        private bool timerRunning;
+
         public event Action<bool> ThinkingChanged;
         public event Action<string> PartialReply;
         public event Action<string> CopMoodChanged;
@@ -49,8 +53,10 @@ namespace TalkOut.Core
             this.judge = judge;
             this.performer = performer;
             State = new SceneStateModel(scenario);
-            Log = new EventLog();
+            Log = new EventLog { PlayerLabel = scenario.playerTranscriptName };
             PlayerTurnsTaken = 0;
+            ElapsedSeconds = 0f;
+            timerRunning = false;
 
             var npc = scenario.GetNpc(scenario.respondingNpcId);
             if (npc != null) npcDisplayName = npc.displayName;
@@ -80,6 +86,12 @@ namespace TalkOut.Core
             if (this == null) return;
             Log.Add(EventKind.NpcSaid, npcDisplayName, Scenario.openerLine);
             Phase = TurnPhase.AwaitingInput;
+            timerRunning = true; // the clock starts once you can talk
+        }
+
+        private void Update()
+        {
+            if (timerRunning) ElapsedSeconds += Time.deltaTime;
         }
 
         public List<ActionDefinition> ComputeAvailableActions()
@@ -235,8 +247,8 @@ namespace TalkOut.Core
 
             // Outcome resolution: judge verdict first, then scene-ending actions, then turn cap.
             string outcomeId = null;
-            if (verdict.Released) outcomeId = "talked_out";
-            else if (verdict.Arrested) outcomeId = "arrest";
+            if (verdict.Released) outcomeId = Scenario.winOutcomeId;
+            else if (verdict.Arrested) outcomeId = Scenario.loseOutcomeId;
             else if (endsSceneOutcomeId != null) outcomeId = endsSceneOutcomeId;
             else if (PlayerTurnsTaken >= Scenario.maxTurns) outcomeId = Scenario.maxTurnsOutcomeId;
 
@@ -246,6 +258,7 @@ namespace TalkOut.Core
                 if (outcome != null)
                 {
                     Phase = TurnPhase.SceneOver;
+                    timerRunning = false;
                     Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
                     SceneEnded?.Invoke(outcome);
                     return;

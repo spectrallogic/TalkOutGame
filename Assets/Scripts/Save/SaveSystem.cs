@@ -15,6 +15,10 @@ namespace TalkOut.Save
         public int timesWon;
         public Dictionary<string, int> outcomeCounts = new Dictionary<string, int>();
         public string bestOutcomeId;
+
+        /// Fastest winning time in seconds; 0 = never won.
+        public float bestTimeSeconds;
+        public float lastTimeSeconds;
     }
 
     [Serializable]
@@ -48,7 +52,7 @@ namespace TalkOut.Save
             return cached ??= new SaveData();
         }
 
-        public static void RecordOutcome(string scenarioId, OutcomeRule outcome)
+        public static void RecordOutcome(string scenarioId, OutcomeRule outcome, float elapsedSeconds = 0f)
         {
             var data = Load();
             if (!data.scenarios.TryGetValue(scenarioId, out var record))
@@ -58,7 +62,15 @@ namespace TalkOut.Save
             }
 
             record.timesPlayed++;
-            if (outcome.isWin) record.timesWon++;
+            record.lastTimeSeconds = elapsedSeconds;
+            if (outcome.isWin)
+            {
+                record.timesWon++;
+                if (record.bestTimeSeconds <= 0f || elapsedSeconds < record.bestTimeSeconds)
+                {
+                    record.bestTimeSeconds = elapsedSeconds;
+                }
+            }
             record.outcomeCounts.TryGetValue(outcome.id, out int count);
             record.outcomeCounts[outcome.id] = count + 1;
             if (outcome.isWin || string.IsNullOrEmpty(record.bestOutcomeId))

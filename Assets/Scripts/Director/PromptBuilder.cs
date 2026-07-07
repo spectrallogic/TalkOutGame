@@ -29,7 +29,7 @@ namespace TalkOut.Directing
             sb.AppendLine("- React viscerally to things that happen: \"What the— did you just honk at me?\"");
             sb.AppendLine("- False starts and trail-offs are good: \"You know what, I don't even...\"");
             sb.AppendLine("- NEVER use assistant phrases: no \"I understand\", no \"I appreciate\", no \"How may I\", no explaining your reasoning, no lists.");
-            sb.AppendLine("- Don't repeat what the driver said back to them. Don't summarize. Just respond.");
+            sb.AppendLine($"- Don't repeat what {scenario.playerLabel} said back to them. Don't summarize. Just respond.");
             sb.AppendLine("- Your current mood (given each turn) colors EVERYTHING. Annoyed = shorter, flatter. Amused = drier, playing along. Suspicious = pointed questions.");
             sb.AppendLine();
             sb.AppendLine("EXAMPLES OF YOUR VOICE (style only, don't reuse):");
@@ -40,22 +40,25 @@ namespace TalkOut.Directing
             sb.AppendLine();
             sb.AppendLine(scenario.comedyRules);
             sb.AppendLine("Output ONLY words leaving your mouth. NEVER describe yourself or your actions (\"the officer glances...\" is FORBIDDEN — you don't narrate, you talk). No stage directions, no asterisks, no quotes, no name prefix. 1-3 short sentences, usually 1-2.");
-            sb.AppendLine("You alone decide when the driver has earned being let go — when they have, SAY it plainly (\"Alright, get out of here. Slow down.\"). If they push way too far, you can declare them under arrest.");
+            sb.AppendLine($"You alone decide when {scenario.playerLabel} has earned what they want from you — when they have, SAY it plainly. If they push way too far, you can end this badly for them and say so.");
 
             return sb.ToString();
         }
 
-        public static string BuildCopReplyQuery(EventLog log, SceneStateModel state, string playerLine)
+        public static string BuildCopReplyQuery(EventLog log, SceneStateModel state, string playerLabel, string playerLine)
         {
             var sb = new StringBuilder();
             AppendMoodBlock(sb, state);
             sb.AppendLine("WHAT HAS HAPPENED SO FAR:");
             sb.Append(log.ToTranscript());
             sb.AppendLine();
-            sb.AppendLine($"The driver just said: \"{playerLine}\"");
+            sb.AppendLine($"{Capitalize(playerLabel)} just said: \"{playerLine}\"");
             sb.Append("Your reply (in your current mood):");
             return sb.ToString();
         }
+
+        private static string Capitalize(string text) =>
+            string.IsNullOrEmpty(text) ? text : char.ToUpper(text[0]) + text.Substring(1);
 
         public static string BuildCopReactionQuery(EventLog log, SceneStateModel state, string eventText, int timesHappened)
         {
@@ -118,14 +121,14 @@ namespace TalkOut.Directing
             sb.AppendLine();
             sb.AppendLine("THE SCENE:");
             sb.AppendLine(scenario.sceneDescription);
-            sb.AppendLine($"The driver's goal: {scenario.playerGoal}");
+            sb.AppendLine($"The goal of {scenario.playerLabel}: {scenario.playerGoal}");
             sb.AppendLine();
             sb.AppendLine("YOUR RULES:");
             sb.AppendLine(scenario.judgeGuidance);
             sb.AppendLine();
             sb.AppendLine("Fields you output:");
-            sb.AppendLine($"- released: true ONLY if {npc.displayName} has CLEARLY told the driver they may leave (a warning counts). Vague friendliness is NOT release.");
-            sb.AppendLine($"- arrested: true ONLY if {npc.displayName} has clearly stated the driver is being arrested/detained.");
+            sb.AppendLine($"- released: true ONLY if {npc.displayName} has CLEARLY granted {scenario.playerLabel} their goal, out loud. Vague friendliness is NOT enough.");
+            sb.AppendLine($"- arrested: true ONLY if {npc.displayName} has clearly, definitively ended this badly for {scenario.playerLabel} (arrest, walking out, etc.).");
             sb.AppendLine($"- cop_mood: {npc.displayName}'s dominant mood right now, judged from his latest lines.");
             sb.AppendLine("- mood_changes: adjust the officer's emotional meters based on what JUST happened. Positive = more of it. Small nudges (3-10) for normal beats, big ones (10-20) for dramatic beats. Only include meters that actually changed.");
             sb.AppendLine("- actions: 0 to 2 physical actions from the offered list that fit what just happened. Empty list is fine.");
