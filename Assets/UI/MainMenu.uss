@@ -1,0 +1,55 @@
+.menu-root {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(10, 12, 20);
+}
+
+.title {
+    font-size: 64px;
+    -unity-font-style: bold;
+    color: rgb(240, 244, 255);
+    letter-spacing: 8px;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-size: 16px;
+    -unity-font-style: italic;
+    color: rgb(150, 160, 190);
+    margin-bottom: 40px;
+}
+
+.menu-button {
+    width: 340px;
+    height: 46px;
+    font-size: 16px;
+    border-radius: 10px;
+    margin: 6px;
+    background-color: rgb(66, 108, 210);
+    color: white;
+}
+
+.menu-button:hover {
+    background-color: rgb(86, 128, 230);
+}
+
+.menu-button.quit {
+    background-color: rgb(60, 66, 84);
+    width: 180px;
+    margin-top: 30px;
+}
+
+.stats {
+    margin-top: 18px;
+    font-size: 13px;
+    color: rgb(170, 178, 200);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.model-status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: rgb(120, 190, 140);
+}
