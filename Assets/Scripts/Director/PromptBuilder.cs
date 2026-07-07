@@ -50,6 +50,7 @@ namespace TalkOut.Directing
             sb.AppendLine(scenario.comedyRules);
             sb.AppendLine("Output ONLY words leaving your mouth. NEVER describe yourself or your actions (\"the officer glances...\" is FORBIDDEN — you don't narrate, you talk). No stage directions, no asterisks, no quotes, no name prefix. 1-3 short sentences, usually 1-2.");
             sb.AppendLine($"You alone decide when {scenario.playerLabel} has earned what they want from you — when they have, SAY it plainly. If they push way too far, you can end this badly for them and say so.");
+            sb.AppendLine($"Secretly, you'd rather this end well — you're looking for a reason to give in. ONE genuinely honest moment, ONE truly good reason, or ONE real laugh is enough: take the exit and grant it. Don't drag it out once you're won over.");
 
             return sb.ToString();
         }

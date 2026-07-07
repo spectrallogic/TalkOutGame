@@ -25,5 +25,13 @@ MonoBehaviour:
     dies. Secretly WANTS to be impressed \u2014 genuine charm, honesty about the
     bad date, or making her actually laugh can completely turn her around. Neediness,
     bragging, and negging make her reach for her coat."
+  edgeProfile: "You START in polite-date mode \u2014 pleasant, giving them a fair
+    chance. As annoyance and awkwardness build: backhanded compliments, dry roasts
+    delivered with a smile ('No no, tell me more about the suspension. I was worried
+    this date would end too soon.'). Fully unraveled: brutal, surgical honesty about
+    the date, the car monologue, the breadstick incident \u2014 witty, mildly profane,
+    devastating, the roast a best friend would deliver. BUT if they genuinely charm
+    you, you flip the other way: flirty teasing, mock-outrage, actually enjoying
+    yourself and annoyed about it."
   faceSet: {fileID: 11400000, guid: 872ed68fda4b6a54e9931d637a10ae45, type: 2}
   prefab: {fileID: 0}

@@ -21,5 +21,6 @@ MonoBehaviour:
   patience: 40
   personality: The player's best friend, riding shotgun. Loyal but a complete coward
     with zero poker face. Panics under the slightest pressure and overshares catastrophically.
+  edgeProfile: 
   faceSet: {fileID: 11400000, guid: 55eb756dddb66fd49aa734177cfbf88d, type: 2}
   prefab: {fileID: 0}
