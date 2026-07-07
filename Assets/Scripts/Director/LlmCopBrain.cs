@@ -31,26 +31,30 @@ namespace TalkOut.Directing
             agent.cachePrompt = true;
         }
 
-        public async Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
+        public async Task<CopReply> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
             Action<string> onPartial, CancellationToken ct)
         {
             string query = PromptBuilder.BuildCopReplyQuery(log, state, playerLine);
             string raw = await RunChat(query, onPartial, ct);
-            if (raw == null) return FallbackLibrary.GetCopLine("cop reply failed");
-            string cleaned = CleanReply(raw);
-            return string.IsNullOrEmpty(cleaned) ? FallbackLibrary.GetCopLine("empty cop reply") : cleaned;
+            if (raw == null) return new CopReply { Spoken = FallbackLibrary.GetCopLine("cop reply failed") };
+            var reply = SplitReply(raw);
+            if (string.IsNullOrEmpty(reply.Spoken))
+            {
+                reply.Spoken = FallbackLibrary.GetCopLine("empty cop reply");
+            }
+            return reply;
         }
 
-        public async Task<string> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
+        public async Task<CopReply> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
             int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
             string query = PromptBuilder.BuildCopReactionQuery(log, state, eventText, timesHappened);
             string raw = await RunChat(query, onPartial, ct);
-            if (raw == null) return ""; // failure on a reaction = officer ignores it
-            string cleaned = CleanReply(raw);
+            if (raw == null) return new CopReply(); // failure on a reaction = officer ignores it
+            var reply = SplitReply(raw);
             // "..." (or nothing) means the officer chose not to comment.
-            if (cleaned.Length < 4 && cleaned.Replace(".", "").Trim().Length == 0) return "";
-            return cleaned;
+            if (reply.Spoken.Replace(".", "").Trim().Length == 0) reply.Spoken = "";
+            return reply;
         }
 
         public async Task WarmupAsync()
@@ -92,15 +96,49 @@ namespace TalkOut.Directing
             }
         }
 
-        /// Small models decorate: strip name prefixes, quotes, stage directions.
-        private string CleanReply(string raw)
+        /// Small models decorate their dialogue with narration. Instead of
+        /// deleting it (or worse, speaking it), split it out: stage directions
+        /// and third-person sentences become silent beat text.
+        private CopReply SplitReply(string raw)
         {
             string text = raw.Trim();
             text = Regex.Replace(text, @"^\s*(" + Regex.Escape(npcName) + @"|Officer|Cop)\s*:\s*", "", RegexOptions.IgnoreCase);
-            text = Regex.Replace(text, @"\*[^*]*\*", "");      // *adjusts belt*
-            text = Regex.Replace(text, @"\([^)]*\)", "");       // (sighs)
-            text = text.Trim().Trim('"').Trim();
-            if (text.Length > 350) text = text.Substring(0, 350).TrimEnd() + "…";
+
+            var narration = new System.Text.StringBuilder();
+
+            // *adjusts belt* / (sighs) -> narration
+            text = Regex.Replace(text, @"\*([^*]*)\*", m => { narration.Append(m.Groups[1].Value.Trim() + " "); return " "; });
+            text = Regex.Replace(text, @"\(([^)]*)\)", m => { narration.Append(m.Groups[1].Value.Trim() + " "); return " "; });
+
+            // Third-person self-narration sentences -> narration
+            var spoken = new System.Text.StringBuilder();
+            foreach (Match m in Regex.Matches(text, @"[^.!?…]+[.!?…]*"))
+            {
+                string sentence = m.Value.Trim();
+                if (sentence.Length == 0) continue;
+                if (Regex.IsMatch(sentence, @"^(The\s+officer|Officer\s+\w+|" + Regex.Escape(npcName) + @")\b(?!\s*[:,])", RegexOptions.IgnoreCase) &&
+                    !Regex.IsMatch(sentence, @"\b(I|I'm|I've|my|me)\b"))
+                {
+                    narration.Append(sentence + " ");
+                }
+                else
+                {
+                    spoken.Append(sentence + " ");
+                }
+            }
+
+            var reply = new CopReply
+            {
+                Spoken = Tidy(spoken.ToString(), 350),
+                Narration = Tidy(narration.ToString(), 200)
+            };
+            return reply;
+        }
+
+        private static string Tidy(string text, int maxLength)
+        {
+            text = Regex.Replace(text, @"\s+", " ").Trim().Trim('"').Trim();
+            if (text.Length > maxLength) text = text.Substring(0, maxLength).TrimEnd() + "…";
             return text;
         }
     }

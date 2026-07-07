@@ -137,14 +137,18 @@ namespace TalkOut.Core
             {
                 Phase = TurnPhase.CopThinking;
                 ThinkingChanged?.Invoke(true);
-                string reaction = await copBrain.ReactToEventAsync(
+                var reaction = await copBrain.ReactToEventAsync(
                     Log, State, eventText, timesHappened, p => PartialReply?.Invoke(p), destroyCancellationToken);
                 if (this == null) return;
                 ThinkingChanged?.Invoke(false);
 
-                if (!string.IsNullOrEmpty(reaction))
+                if (!string.IsNullOrEmpty(reaction.Narration))
                 {
-                    Log.Add(EventKind.NpcSaid, npcDisplayName, reaction);
+                    Log.Add(EventKind.SceneBeat, "", reaction.Narration);
+                }
+                if (!string.IsNullOrEmpty(reaction.Spoken))
+                {
+                    Log.Add(EventKind.NpcSaid, npcDisplayName, reaction.Spoken);
                     await RunJudgePassAsync();
                 }
                 else
@@ -168,12 +172,16 @@ namespace TalkOut.Core
 
             Phase = TurnPhase.CopThinking;
             ThinkingChanged?.Invoke(true);
-            string reply = await copBrain.ReplyAsync(
+            var reply = await copBrain.ReplyAsync(
                 Log, State, playerLine, p => PartialReply?.Invoke(p), destroyCancellationToken);
             if (this == null) return;
             ThinkingChanged?.Invoke(false);
 
-            Log.Add(EventKind.NpcSaid, npcDisplayName, reply);
+            if (!string.IsNullOrEmpty(reply.Narration))
+            {
+                Log.Add(EventKind.SceneBeat, "", reply.Narration);
+            }
+            Log.Add(EventKind.NpcSaid, npcDisplayName, reply.Spoken);
             await RunJudgePassAsync();
         }
 

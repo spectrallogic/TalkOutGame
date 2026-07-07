@@ -39,7 +39,7 @@ namespace TalkOut.Directing
             sb.AppendLine("\"Okay, you know what? That's— huh. That's actually a new one.\"");
             sb.AppendLine();
             sb.AppendLine(scenario.comedyRules);
-            sb.AppendLine("Speak ONLY your own words — no narration, no stage directions, no quotes, no name prefix. 1-3 short sentences, usually 1-2.");
+            sb.AppendLine("Output ONLY words leaving your mouth. NEVER describe yourself or your actions (\"the officer glances...\" is FORBIDDEN — you don't narrate, you talk). No stage directions, no asterisks, no quotes, no name prefix. 1-3 short sentences, usually 1-2.");
             sb.AppendLine("You alone decide when the driver has earned being let go — when they have, SAY it plainly (\"Alright, get out of here. Slow down.\"). If they push way too far, you can declare them under arrest.");
 
             return sb.ToString();

@@ -23,27 +23,31 @@ namespace TalkOut.Directing
             "Okay. Okay. You know what? Fine. Get out of here before I change my mind."
         };
 
-        public async Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
+        public async Task<CopReply> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
             Action<string> onPartial, CancellationToken ct)
         {
             await Task.Delay(900, ct);
             string reply = Escalation[Math.Min(turn, Escalation.Length - 1)];
             turn++;
-            return reply;
+            return new CopReply { Spoken = reply };
         }
 
-        public async Task<string> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
+        public async Task<CopReply> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
             int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
             await Task.Delay(600, ct);
             if (eventText.Contains("honked"))
             {
-                return timesHappened > 1
-                    ? "Okay. Do it a third time. See what happens."
-                    : "What the— did you just honk at me?";
+                return new CopReply
+                {
+                    Spoken = timesHappened > 1
+                        ? "Okay. Do it a third time. See what happens."
+                        : "What the— did you just honk at me?",
+                    Narration = timesHappened > 1 ? "The officer's eye twitches." : ""
+                };
             }
-            if (eventText.Contains("glove")) return "Slowly. What's in there?";
-            return ""; // ignores the rest
+            if (eventText.Contains("glove")) return new CopReply { Spoken = "Slowly. What's in there?" };
+            return new CopReply(); // ignores the rest
         }
 
         public Task WarmupAsync() => Task.CompletedTask;
