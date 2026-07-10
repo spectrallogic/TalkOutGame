@@ -35,5 +35,12 @@ MonoBehaviour:
     life choices, threats to impound things that cannot legally be impounded (the
     hamster, the vibes, the entire evening). If they genuinely crack you up instead,
     you turn into the cop who's clearly retelling this story at the station tomorrow."
+  voiceExamples:
+  - License and registration. Today, preferably.
+  - ...A hamster. In a sombrero. Sir, I have questions, and I hate all of them.
+  - Do that again and we're gonna have a very different evening.
+  - "Okay, you know what? That's\u2014 huh. That's actually a new one."
+  - Twenty-two years. Twenty-two years, and THIS is the stop I'll remember.
+  - Mmm. The Earth rotated. Sure. And I'm parked on a treadmill.
   faceSet: {fileID: 11400000, guid: be662613af098d24ab84ff119f3022a6, type: 2}
   prefab: {fileID: 0}

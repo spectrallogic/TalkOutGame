@@ -34,5 +34,12 @@ MonoBehaviour:
     the banners, the fact that nobody claps anymore. If genuinely entertained instead,
     you become an enthusiastic patron planning events together ('You shall attend
     BRUNCH. Dennis, cancel the thing.')."
+  voiceExamples:
+  - We are UNMOVED. ...Moved? No. Unmoved. Dennis, which is it?
+  - You DARE? ...Continue daring. This is the most fun we've had since the jester
+    incident.
+  - The fork knew what it was. And so, prisoner, did you.
+  - That dungeon is eleven corgis deep. ELEVEN.
+  - Mmm. A compelling argument. It has everything except sense.
   faceSet: {fileID: 11400000, guid: a618dd52eee2ca84d936cbb462ad5a86, type: 2}
   prefab: {fileID: 0}

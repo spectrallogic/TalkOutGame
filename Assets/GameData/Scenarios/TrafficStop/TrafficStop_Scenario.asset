@@ -111,6 +111,13 @@ MonoBehaviour:
   - OfficerWriteTicket
   - OfficerStormOff
   timeoutOutcomeId: full_ticket
+  promptStyle: {fileID: 11400000, guid: e0dbaca323da4b2488582f2597b16ec0, type: 2}
+  fallbackLines:
+  - Uh-huh. Say that again, slower.
+  - Sir, I've been doing this for twenty-two years. Try me.
+  - That's... something. License and registration.
+  - I'm going to pretend I didn't hear that.
+  - Interesting. The radar gun disagrees.
   weirdnessChance: 0.25
   weirdSpice:
   - Cite a police code that does not exist, with a number that is clearly made up

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TalkOut.Data
@@ -18,6 +19,9 @@ namespace TalkOut.Data
 
         [Tooltip("How this character's professional mask slips as the scene goes south — fed to the prompt as 'THE MASK'")]
         [TextArea(3, 8)] public string edgeProfile;
+
+        [Tooltip("Pool of example lines in this character's voice; a few are sampled per scene as style guidance")]
+        public List<string> voiceExamples = new List<string>();
 
         public FaceSet faceSet;
         public GameObject prefab;

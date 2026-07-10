@@ -23,7 +23,8 @@ namespace TalkOut.Directing
         public void Configure(ScenarioDefinition scenario, LlmConfig llmConfig)
         {
             config = llmConfig;
-            agent.systemPrompt = PromptBuilder.BuildJudgeSystemPrompt(scenario);
+            var sceneRng = new System.Random(unchecked(System.Environment.TickCount * 17 + scenario.scenarioId.GetHashCode()));
+            agent.systemPrompt = PromptBuilder.BuildJudgeSystemPrompt(scenario, sceneRng);
             agent.temperature = 0.3f;  // the referee should be consistent, not creative
             agent.numPredict = 80;
             agent.cachePrompt = true;

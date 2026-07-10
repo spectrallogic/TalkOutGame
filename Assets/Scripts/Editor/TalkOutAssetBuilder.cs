@@ -14,6 +14,10 @@ namespace TalkOut.EditorTools
         // Scenario currently being authored — all asset helpers write under here.
         private static string Root = "Assets/GameData/Scenarios/TrafficStop";
 
+        // Shared prompt-variant pools; created once, then designer-editable
+        // (CreateOrLoad never overwrites an existing asset's pools).
+        private static PromptStyleLibrary promptStyle;
+
         public static readonly Color OfficerSkin = new Color(0.87f, 0.70f, 0.55f);
         public static readonly Color PassengerSkin = new Color(0.70f, 0.52f, 0.38f);
         public static readonly Color ChloeSkin = new Color(0.93f, 0.76f, 0.62f);
@@ -36,6 +40,7 @@ namespace TalkOut.EditorTools
         public static void BuildAssets()
         {
             BuildMaterials();
+            promptStyle = CreateOrLoad<PromptStyleLibrary>("Assets/GameData/PromptStyle.asset");
             BuildTrafficStopAssets();
             BuildDateAssets();
             BuildKingAssets();
@@ -75,6 +80,15 @@ namespace TalkOut.EditorTools
                 "brutally honest observations about the driver's life choices, threats to impound things that cannot legally " +
                 "be impounded (the hamster, the vibes, the entire evening). If they genuinely crack you up instead, you turn " +
                 "into the cop who's clearly retelling this story at the station tomorrow.";
+            officer.voiceExamples = new List<string>
+            {
+                "License and registration. Today, preferably.",
+                "...A hamster. In a sombrero. Sir, I have questions, and I hate all of them.",
+                "Do that again and we're gonna have a very different evening.",
+                "Okay, you know what? That's— huh. That's actually a new one.",
+                "Twenty-two years. Twenty-two years, and THIS is the stop I'll remember.",
+                "Mmm. The Earth rotated. Sure. And I'm parked on a treadmill.",
+            };
             officer.faceSet = officerFaces;
             EditorUtility.SetDirty(officer);
 
@@ -245,6 +259,15 @@ namespace TalkOut.EditorTools
                 "Refer to your radar gun by a first name. Once. Never again.",
                 "Explain a piece of traffic law that is definitely not real, with complete procedural confidence.",
             };
+            scenario.promptStyle = promptStyle;
+            scenario.fallbackLines = new List<string>
+            {
+                "Uh-huh. Say that again, slower.",
+                "Sir, I've been doing this for twenty-two years. Try me.",
+                "That's... something. License and registration.",
+                "I'm going to pretend I didn't hear that.",
+                "Interesting. The radar gun disagrees.",
+            };
             scenario.playerLabel = "the driver";
             scenario.playerTranscriptName = "Driver";
             scenario.winOutcomeId = "talked_out";
@@ -276,6 +299,14 @@ namespace TalkOut.EditorTools
                 "the car monologue, the breadstick incident — witty, mildly profane, devastating, the roast a best friend " +
                 "would deliver. BUT if they genuinely charm you, you flip the other way: flirty teasing, mock-outrage, " +
                 "actually enjoying yourself and annoyed about it.";
+            chloe.voiceExamples = new List<string>
+            {
+                "You're doing the car thing again. You know that, right?",
+                "Okay, that was— no. No, that was actually funny. Damn it.",
+                "Mmm. Bold. Wrong, but bold.",
+                "I've had worse dates. One involved a ferret. No follow-up questions.",
+                "Say 'suspension' one more time. I dare you.",
+            };
             chloe.faceSet = chloeFaces;
             EditorUtility.SetDirty(chloe);
 
@@ -375,6 +406,14 @@ namespace TalkOut.EditorTools
                 "Have a very specific dating rule you've never told anyone ('I don't date anyone who claps when the plane lands. Or whispers to bread.').",
                 "Quietly rank tonight against a previous date by number only ('This is going better than date fourteen.'). Refuse to elaborate.",
             };
+            scenario.promptStyle = promptStyle;
+            scenario.fallbackLines = new List<string>
+            {
+                "Mmm. Wow.",
+                "Okay... anyway.",
+                "You lost me. Take another run at that.",
+                "I need you to hear how that sounded.",
+            };
             scenario.stats = new List<StatDefinition>
             {
                 new StatDefinition { id = "annoyance", initial = 15, min = 0, max = 100, adjective = "annoyed" },
@@ -420,6 +459,14 @@ namespace TalkOut.EditorTools
                 "lately. Fully unraveled: a complete meltdown about something unrelated — the scones, the state of " +
                 "the banners, the fact that nobody claps anymore. If genuinely entertained instead, you become an " +
                 "enthusiastic patron planning events together ('You shall attend BRUNCH. Dennis, cancel the thing.').";
+            king.voiceExamples = new List<string>
+            {
+                "We are UNMOVED. ...Moved? No. Unmoved. Dennis, which is it?",
+                "You DARE? ...Continue daring. This is the most fun we've had since the jester incident.",
+                "The fork knew what it was. And so, prisoner, did you.",
+                "That dungeon is eleven corgis deep. ELEVEN.",
+                "Mmm. A compelling argument. It has everything except sense.",
+            };
             king.faceSet = kingFaces;
             EditorUtility.SetDirty(king);
 
@@ -536,6 +583,14 @@ namespace TalkOut.EditorTools
                 "Make small talk with Dennis mid-sentence, then return to the prisoner as if nothing happened.",
                 "Reference a previous prisoner by name with fondness. What happened to them must remain unclear.",
                 "Declare a new law, effective immediately, about something in this room. Move on.",
+            };
+            scenario.promptStyle = promptStyle;
+            scenario.fallbackLines = new List<string>
+            {
+                "We shall pretend that was Latin.",
+                "Mmm. Dennis, did you understand that? No? Proceed anyway.",
+                "Repeat that. Slower. Kinglier.",
+                "The crown grows weary of riddles.",
             };
             scenario.stats = new List<StatDefinition>
             {

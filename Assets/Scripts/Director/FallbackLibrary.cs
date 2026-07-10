@@ -1,24 +1,31 @@
+using System.Collections.Generic;
+using TalkOut.Data;
+
 namespace TalkOut.Directing
 {
     /// In-fiction canned material used whenever an LLM call fails
-    /// (timeout, model missing). The scene always keeps moving.
+    /// (timeout, model missing). Lines come from the scenario's data;
+    /// the generic pool only backstops scenarios that define none.
     public static class FallbackLibrary
     {
         private static int next;
 
-        private static readonly string[] CopLines =
+        private static readonly List<string> GenericLines = new List<string>
         {
-            "Uh-huh. Say that again, slower.",
-            "Sir, I've been doing this for twenty-two years. Try me.",
-            "That's... something. License and registration.",
+            "...Say that again. Slower.",
+            "Mmm.",
             "I'm going to pretend I didn't hear that.",
-            "Interesting. The radar gun disagrees."
+            "That's... something.",
+            "Interesting. Continue.",
         };
 
-        public static string GetCopLine(string reason)
+        public static string GetLine(ScenarioDefinition scenario, string reason)
         {
-            UnityEngine.Debug.LogWarning($"[Fallback] Cop line used: {reason}");
-            return CopLines[next++ % CopLines.Length];
+            UnityEngine.Debug.LogWarning($"[Fallback] NPC line used: {reason}");
+            var pool = scenario != null && scenario.fallbackLines != null && scenario.fallbackLines.Count > 0
+                ? scenario.fallbackLines
+                : GenericLines;
+            return pool[next++ % pool.Count];
         }
 
         public static JudgeVerdict GetVerdict(string reason)

@@ -90,6 +90,12 @@ MonoBehaviour:
   timeoutActionIds:
   - ChloeLeave
   timeoutOutcomeId: date_over
+  promptStyle: {fileID: 11400000, guid: e0dbaca323da4b2488582f2597b16ec0, type: 2}
+  fallbackLines:
+  - Mmm. Wow.
+  - Okay... anyway.
+  - You lost me. Take another run at that.
+  - I need you to hear how that sounded.
   weirdnessChance: 0.25
   weirdSpice:
   - Share an opinion about a menu item that is WAY too strong. Move on immediately.

@@ -59,6 +59,12 @@ namespace TalkOut.Data
         [Tooltip("Outcome forced when time runs out")]
         public string timeoutOutcomeId = "full_ticket";
 
+        [Tooltip("Variant pools for all instructional prompt text; null falls back to defaults")]
+        public PromptStyleLibrary promptStyle;
+
+        [Tooltip("In-fiction canned NPC lines used when an LLM call fails")]
+        public List<string> fallbackLines = new List<string>();
+
         [Header("Weirdness (ITYSL dial)")]
         [Tooltip("Chance per NPC turn that a secret weird directive is injected (0-1)")]
         [Range(0f, 1f)] public float weirdnessChance = 0.25f;

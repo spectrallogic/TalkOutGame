@@ -19,17 +19,18 @@ namespace TalkOut.Directing
         private LlmConfig config;
         private ScenarioDefinition scenarioData;
         private string npcName = "Officer";
-        private string playerLabel = "the driver";
 
         public void Configure(ScenarioDefinition scenario, LlmConfig llmConfig)
         {
             config = llmConfig;
             scenarioData = scenario;
-            playerLabel = scenario.playerLabel;
             var npc = scenario.GetNpc(scenario.respondingNpcId);
             if (npc != null) npcName = npc.displayName;
 
-            agent.systemPrompt = PromptBuilder.BuildCopSystemPrompt(scenario);
+            // Scene-stable seed: prompt variants differ between runs but stay
+            // byte-identical within a scene (keeps llama.cpp's prompt cache warm).
+            var sceneRng = new System.Random(unchecked(System.Environment.TickCount * 31 + scenario.scenarioId.GetHashCode()));
+            agent.systemPrompt = PromptBuilder.BuildCopSystemPrompt(scenario, sceneRng);
             agent.temperature = 0.9f;   // comedy wants spice
             agent.numPredict = 90;      // 1-3 short sentences
             agent.cachePrompt = true;
@@ -39,13 +40,13 @@ namespace TalkOut.Directing
             Action<string> onPartial, CancellationToken ct)
         {
             string query = PromptBuilder.BuildCopReplyQuery(
-                log, state, playerLabel, playerLine, WeirdnessDeck.Draw(scenarioData));
+                log, state, scenarioData, playerLine, WeirdnessDeck.Draw(scenarioData));
             string raw = await RunChat(query, onPartial, ct);
-            if (raw == null) return new CopReply { Spoken = FallbackLibrary.GetCopLine("cop reply failed") };
+            if (raw == null) return new CopReply { Spoken = FallbackLibrary.GetLine(scenarioData, "cop reply failed") };
             var reply = SplitReply(raw);
             if (string.IsNullOrEmpty(reply.Spoken))
             {
-                reply.Spoken = FallbackLibrary.GetCopLine("empty cop reply");
+                reply.Spoken = FallbackLibrary.GetLine(scenarioData, "empty cop reply");
             }
             return reply;
         }
@@ -54,7 +55,7 @@ namespace TalkOut.Directing
             int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
             string query = PromptBuilder.BuildCopReactionQuery(
-                log, state, eventText, timesHappened, WeirdnessDeck.Draw(scenarioData));
+                log, state, scenarioData, eventText, timesHappened, WeirdnessDeck.Draw(scenarioData));
             string raw = await RunChat(query, onPartial, ct);
             if (raw == null) return new CopReply(); // failure on a reaction = officer ignores it
             var reply = SplitReply(raw);
