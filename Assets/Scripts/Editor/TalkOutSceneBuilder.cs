@@ -52,12 +52,14 @@ namespace TalkOut.EditorTools
         {
             BuildTrafficStopScene();
             BuildDateScene();
+            BuildKingScene();
             BuildMainMenuScene();
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/TrafficStop.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/Date.unity", true),
+                new EditorBuildSettingsScene("Assets/Scenes/King.unity", true),
             };
             Debug.Log("[TalkOut] Scenes built and added to Build Settings.");
         }
@@ -518,6 +520,214 @@ namespace TalkOut.EditorTools
         }
 
         // ====================================================================
+        // LEVEL 3 — THE EXECUTION (King)
+        // ====================================================================
+        private static void BuildKingScene()
+        {
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            RenderSettings.skybox = null;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.22f, 0.18f, 0.14f);
+            RenderSettings.ambientEquatorColor = new Color(0.15f, 0.12f, 0.10f);
+            RenderSettings.ambientGroundColor = new Color(0.07f, 0.06f, 0.05f);
+            RenderSettings.fog = false;
+
+            var shaft = new GameObject("LightShaft").AddComponent<Light>();
+            shaft.type = LightType.Directional;
+            shaft.intensity = 0.3f;
+            shaft.color = new Color(0.8f, 0.85f, 1f);
+            shaft.shadows = LightShadows.Soft;
+            shaft.transform.rotation = Quaternion.Euler(60f, 15f, 0f);
+
+            // --- hall ---
+            var hall = new GameObject("ThroneRoom").transform;
+            Prim(PrimitiveType.Plane, "Floor", hall, Vector3.zero, new Vector3(2.4f, 1, 3f), "Stone_Dark");
+            Prim(PrimitiveType.Cube, "Carpet", hall, new Vector3(0, 0.012f, 0.6f), new Vector3(1.6f, 0.02f, 9f), "Carpet_Red");
+            Prim(PrimitiveType.Cube, "WallBack", hall, new Vector3(0, 2.5f, 6.5f), new Vector3(12f, 5f, 0.3f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "WallFront", hall, new Vector3(0, 2.5f, -7f), new Vector3(12f, 5f, 0.3f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "WallLeft", hall, new Vector3(-6f, 2.5f, 0), new Vector3(0.3f, 5f, 14f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "WallRight", hall, new Vector3(6f, 2.5f, 0), new Vector3(0.3f, 5f, 14f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "Ceiling", hall, new Vector3(0, 5f, 0), new Vector3(12f, 0.2f, 14f), "Stone_Dark");
+
+            // banners behind the throne
+            foreach (float x in new[] { -2.2f, 0f, 2.2f })
+            {
+                Prim(PrimitiveType.Cube, "Banner", hall, new Vector3(x, 3.2f, 6.3f), new Vector3(1.1f, 2.6f, 0.06f), "Banner_Red");
+                Prim(PrimitiveType.Cube, "BannerTrim", hall, new Vector3(x, 4.45f, 6.28f), new Vector3(1.2f, 0.12f, 0.1f), "Gold");
+            }
+
+            // torch pillars with flicker
+            foreach (var (x, z) in new[] { (-3.4f, 2.5f), (3.4f, 2.5f), (-3.4f, -2.5f), (3.4f, -2.5f) })
+            {
+                var pillar = Prim(PrimitiveType.Cube, "Pillar", hall, new Vector3(x, 1.75f, z), new Vector3(0.6f, 3.5f, 0.6f), "Stone_Grey");
+                Prim(PrimitiveType.Cube, "TorchFlame", pillar.transform, new Vector3(0, 0.58f, 0), new Vector3(0.35f, 0.18f, 0.35f), "Candle_Flame");
+                var torch = MakeLight(pillar.transform, "TorchLight", new Vector3(0, 0.72f, 0), new Color(1f, 0.65f, 0.3f), 1.7f, 8f);
+                torch.shadows = LightShadows.Soft;
+                var flicker = torch.gameObject.AddComponent<LightFlicker>();
+                flicker.baseIntensity = 1.7f;
+            }
+
+            // --- dais + throne ---
+            Prim(PrimitiveType.Cube, "DaisStep1", hall, new Vector3(0, 0.15f, 3.4f), new Vector3(4.2f, 0.3f, 3f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "DaisStep2", hall, new Vector3(0, 0.45f, 3.7f), new Vector3(3.2f, 0.3f, 2.4f), "Stone_Grey");
+            Prim(PrimitiveType.Cube, "ThroneSeat", hall, new Vector3(0, 0.92f, 3.9f), new Vector3(1.0f, 0.25f, 0.9f), "Gold");
+            Prim(PrimitiveType.Cube, "ThroneBack", hall, new Vector3(0, 1.9f, 4.3f), new Vector3(1.0f, 1.9f, 0.18f), "Gold");
+            Prim(PrimitiveType.Cube, "ThroneArmL", hall, new Vector3(-0.55f, 1.2f, 3.9f), new Vector3(0.14f, 0.35f, 0.85f), "Gold");
+            Prim(PrimitiveType.Cube, "ThroneArmR", hall, new Vector3(0.55f, 1.2f, 3.9f), new Vector3(0.14f, 0.35f, 0.85f), "Gold");
+
+            // --- the King (seated, crowned) ---
+            var king = BuildCharacter("King_Aldric", "king",
+                "Skin_King", "Velvet_Purple", "King", standing: false, hatMat: "Gold");
+            king.transform.position = new Vector3(0, 1.05f, 3.85f);
+            king.transform.rotation = Quaternion.Euler(0, 180f, 0);
+            king.GetComponent<NPCActor>().canWalk = true; // he can rise and descend
+
+            var kingTorso = king.transform.Find("TorsoPivot");
+            var scepter = StripCollider(Prim(PrimitiveType.Cube, "Scepter", kingTorso.Find("ArmR"),
+                new Vector3(0, -0.55f, 0.1f), new Vector3(0.35f, 1.1f, 0.35f), "Gold"));
+            AddProp(scepter, "King", "scepter");
+
+            var goblet = Prim(PrimitiveType.Cylinder, "Goblet", hall,
+                new Vector3(0.55f, 1.45f, 3.85f), new Vector3(0.09f, 0.08f, 0.09f), "Gold");
+            AddProp(goblet, "King", "goblet");
+
+            var kingSpeaker = king.AddComponent<NpcSpeaker>();
+            kingSpeaker.actorDisplayName = "King Aldric IV";
+            kingSpeaker.voiceName = "David";
+            kingSpeaker.rate = 1;
+            kingSpeaker.pitch = 3; // pompous
+            kingSpeaker.wobble = king.GetComponent<WobbleAnimator>();
+
+            // --- Dennis the executioner (behind the prisoner) ---
+            var dennis = BuildCharacter("Dennis_Executioner", "passenger",
+                "Skin_Dennis", "Pants_Dark", "Dennis", standing: true, hatMat: "Pants_Dark");
+            dennis.transform.position = new Vector3(1.7f, 0, -1.6f);
+            dennis.transform.rotation = Quaternion.Euler(0, -120f, 0);
+            dennis.GetComponent<NPCActor>().canWalk = false;
+
+            var dennisTorso = dennis.transform.Find("TorsoPivot");
+            var axe = new GameObject("Axe").transform;
+            axe.SetParent(dennisTorso, false);
+            axe.localPosition = new Vector3(0.3f, 0.3f, 0.15f);
+            axe.localRotation = Quaternion.Euler(0, 0, 15f);
+            StripCollider(Prim(PrimitiveType.Cube, "Handle", axe, new Vector3(0, 0.4f, 0), new Vector3(0.06f, 1.3f, 0.06f), "Tree_Trunk"));
+            StripCollider(Prim(PrimitiveType.Cube, "Blade", axe, new Vector3(0.18f, 0.95f, 0), new Vector3(0.35f, 0.4f, 0.04f), "Axe_Steel"));
+            AddProp(axe.gameObject, "King", "axe");
+
+            // --- interactables around the kneeling prisoner ---
+            var cushionStand = Prim(PrimitiveType.Cube, "EvidencePedestal", hall,
+                new Vector3(-1.5f, 0.5f, 0.9f), new Vector3(0.4f, 1.0f, 0.4f), "Stone_Grey");
+            var cushion = Prim(PrimitiveType.Cube, "Cushion", hall,
+                new Vector3(-1.5f, 1.06f, 0.9f), new Vector3(0.42f, 0.12f, 0.42f), "Velvet_Purple");
+            var fork = Prim(PrimitiveType.Cube, "FishFork", hall,
+                new Vector3(-1.5f, 1.15f, 0.9f), new Vector3(0.05f, 0.02f, 0.28f), "Axe_Steel");
+            AddProp(fork, "King", "fishFork");
+            var forkUse = fork.AddComponent<Interactable>();
+            forkUse.hintText = "Gesture at the fish fork";
+            forkUse.pulseTarget = fork.transform;
+            forkUse.eventTextTemplate = "The prisoner gestures dramatically at the fish fork — the entire case against them, resting on velvet.";
+            forkUse.cooldownSeconds = 8f;
+            forkUse.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 3),
+            };
+
+            // Reginald, the royal corgi
+            var corgi = new GameObject("RoyalCorgi");
+            corgi.transform.position = new Vector3(1.3f, 0, 1.7f);
+            corgi.transform.rotation = Quaternion.Euler(0, -140f, 0);
+            var corgiTorso = new GameObject("TorsoPivot").transform;
+            corgiTorso.SetParent(corgi.transform, false);
+            corgiTorso.localPosition = new Vector3(0, 0.18f, 0);
+            Prim(PrimitiveType.Cube, "Body", corgiTorso, new Vector3(0, 0.14f, 0), new Vector3(0.32f, 0.26f, 0.62f), "Corgi_Tan");
+            var corgiHead = Prim(PrimitiveType.Cube, "Head", corgiTorso, new Vector3(0, 0.34f, 0.34f), new Vector3(0.26f, 0.24f, 0.24f), "Corgi_Tan");
+            StripCollider(Prim(PrimitiveType.Cube, "EarL", corgiHead.transform, new Vector3(-0.3f, 0.6f, 0), new Vector3(0.25f, 0.4f, 0.15f), "Corgi_Tan"));
+            StripCollider(Prim(PrimitiveType.Cube, "EarR", corgiHead.transform, new Vector3(0.3f, 0.6f, 0), new Vector3(0.25f, 0.4f, 0.15f), "Corgi_Tan"));
+            StripCollider(Prim(PrimitiveType.Cube, "Tail", corgiTorso, new Vector3(0, 0.28f, -0.36f), new Vector3(0.1f, 0.1f, 0.18f), "Napkin_White"));
+            foreach (var (x, z) in new[] { (-0.1f, 0.2f), (0.1f, 0.2f), (-0.1f, -0.2f), (0.1f, -0.2f) })
+            {
+                StripCollider(Prim(PrimitiveType.Cube, "Leg", corgiTorso, new Vector3(x, -0.08f, z), new Vector3(0.09f, 0.2f, 0.09f), "Corgi_Tan"));
+            }
+            var corgiWobble = corgi.AddComponent<WobbleAnimator>();
+            corgiWobble.torsoPivot = corgiTorso;
+            corgiWobble.head = corgiHead.transform;
+            corgiWobble.idleDegrees = 5f;
+            AddProp(corgi, "King", "corgi");
+            var petCorgi = corgi.AddComponent<Interactable>();
+            petCorgi.hintText = "Pet the royal corgi";
+            petCorgi.pulseTarget = corgiTorso;
+            petCorgi.eventTextTemplate = "The prisoner pets Reginald, the royal corgi. Reginald allows it. The king watches very closely.";
+            petCorgi.cooldownSeconds = 6f;
+            petCorgi.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 5),
+            };
+
+            // chains, lute, groveling cushion
+            var chains = Prim(PrimitiveType.Cube, "Chains", hall,
+                new Vector3(0.35f, 0.55f, -1.15f), new Vector3(0.22f, 0.1f, 0.22f), "Guardrail");
+            var rattle = chains.AddComponent<Interactable>();
+            rattle.hintText = "Rattle your chains";
+            rattle.pulseTarget = chains.transform;
+            rattle.eventTextTemplate = "The prisoner rattles their chains. For emphasis.";
+            rattle.cooldownSeconds = 5f;
+            rattle.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("annoyance", 3),
+                StatEffect.Delta("amusement", 2),
+            };
+
+            var lute = Prim(PrimitiveType.Cube, "SadLute", hall,
+                new Vector3(-1.1f, 0.08f, -0.9f), new Vector3(0.3f, 0.12f, 0.7f), "Tree_Trunk");
+            var kickLute = lute.AddComponent<Interactable>();
+            kickLute.hintText = "Kick the sad lute";
+            kickLute.pulseTarget = lute.transform;
+            kickLute.eventTextTemplate = "The prisoner kicks the abandoned lute. A single, deeply sad twang echoes through the hall.";
+            kickLute.cooldownSeconds = 7f;
+            kickLute.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("amusement", 4),
+            };
+
+            var grovelSpot = Prim(PrimitiveType.Cube, "GrovelCushion", hall,
+                new Vector3(0, 0.05f, -0.5f), new Vector3(0.6f, 0.08f, 0.4f), "Velvet_Purple");
+            var grovel = grovelSpot.AddComponent<Interactable>();
+            grovel.hintText = "Grovel dramatically";
+            grovel.pulseTarget = grovelSpot.transform;
+            grovel.eventTextTemplate = "The prisoner presses their forehead to the stone floor in exquisite, theatrical groveling.";
+            grovel.cooldownSeconds = 10f;
+            grovel.immediateEffects = new System.Collections.Generic.List<StatEffect>
+            {
+                StatEffect.Delta("flattery", 6),
+            };
+
+            // --- locations ---
+            var locations = new GameObject("Locations").transform;
+            Location(locations, "Throne", new Vector3(0, 1.05f, 3.85f), 180f);
+            Location(locations, "ThroneSteps", new Vector3(0, 1.05f, 2.6f), 180f);
+            Location(locations, "AxeSpot", new Vector3(1.7f, 0, -1.6f), -120f);
+
+            // --- kneeling first-person camera ---
+            var cameraHost = new GameObject("PrisonerSpot");
+            cameraHost.transform.position = new Vector3(0, 0, -1.3f);
+            Prim(PrimitiveType.Cube, "PlayerTorso", cameraHost.transform, new Vector3(0, 0.45f, 0), new Vector3(0.45f, 0.6f, 0.3f), "Car_White");
+            var (cameraGo, rig, raycaster) = BuildPlayerCamera(cameraHost.transform, new Vector3(0, 0.95f, 0), 130f);
+            raycaster.range = 2.4f;
+            rig.minPitch = -40f;
+            rig.maxPitch = 65f; // you WILL be looking up at this man
+
+            WireGameSystems(
+                "Assets/GameData/Scenarios/King/King_Scenario.asset",
+                cameraGo, rig, raycaster,
+                "Hold V to talk  ·  Enter to type  ·  Click things around you",
+                includeHarness: false, musicStyle: MusicStyle.Royal);
+
+            EditorSceneManager.SaveScene(scene, "Assets/Scenes/King.unity");
+            Debug.Log("[TalkOut] King scene built.");
+        }
+
+        // ====================================================================
         // MAIN MENU
         // ====================================================================
         private static void BuildMainMenuScene()
@@ -601,15 +811,22 @@ namespace TalkOut.EditorTools
                 {
                     sceneName = "TrafficStop",
                     scenarioId = "traffic_stop",
-                    title = "LEVEL 1 — TRAFFIC STOP",
+                    title = "TRAFFIC STOP",
                     description = "Talk your way out of the ticket. The hamster is not helping."
                 },
                 new MainMenuController.LevelEntry
                 {
                     sceneName = "Date",
                     scenarioId = "the_date",
-                    title = "LEVEL 2 — THE DATE",
+                    title = "THE DATE",
                     description = "Convince Chloe to give you a second date. Do not mention the car."
+                },
+                new MainMenuController.LevelEntry
+                {
+                    sceneName = "King",
+                    scenarioId = "the_king",
+                    title = "THE EXECUTION",
+                    description = "Convince the king your beheading is, legally speaking, a scheduling error."
                 },
             };
 

@@ -10,8 +10,16 @@ literally, into your microphone — until the cop lets you go. Everything runs
 watches the transcript and rules when you've actually talked your way out,
 Whisper transcribes your voice, and Windows TTS gives the cop a voice.
 
-**Scenario 001: Traffic Stop** — Officer Glazer at your window, your friend Benny
-sweating in the passenger seat, and a glove box you probably shouldn't open.
+**Three situations** (play solo or PLAY ALL in order for a cumulative run score):
+- **Traffic Stop** — Officer Glazer at your window, Benny sweating in the passenger
+  seat, and a glove box you probably shouldn't open.
+- **The Date** — convince Chloe there should be a second one. Don't mention the car.
+- **The Execution** — convince King Aldric IV that your beheading is, legally
+  speaking, a scheduling error. Pet the corgi. Grovel. Mind the goblet.
+
+NPCs run on a **weirdness dial**: scenes feel normal until, sometimes, they quietly
+aren't ("Mmm." — misheard words, tiny personal laws, anecdotes that help no one).
+The characters never acknowledge it. That's the bit.
 
 ## Setup (fresh clone)
 

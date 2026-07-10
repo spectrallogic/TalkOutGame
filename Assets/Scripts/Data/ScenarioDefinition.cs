@@ -59,6 +59,12 @@ namespace TalkOut.Data
         [Tooltip("Outcome forced when time runs out")]
         public string timeoutOutcomeId = "full_ticket";
 
+        [Header("Weirdness (ITYSL dial)")]
+        [Tooltip("Chance per NPC turn that a secret weird directive is injected (0-1)")]
+        [Range(0f, 1f)] public float weirdnessChance = 0.25f;
+        [Tooltip("Scenario-flavored weird directives, mixed into the global deck")]
+        public List<string> weirdSpice = new List<string>();
+
         [Header("Idle player")]
         [Tooltip("Seconds of player silence before it becomes a scene event the NPC can react to")]
         public float idleNudgeSeconds = 20f;

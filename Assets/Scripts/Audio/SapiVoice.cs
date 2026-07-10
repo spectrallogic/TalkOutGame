@@ -49,7 +49,7 @@ namespace TalkOut.Audio
                 " if($line.Length -gt 0){" +
                 "  $ssml = '<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"en-US\">" +
                 $"<prosody pitch=\"{(pitchPercent >= 0 ? "+" : "")}{pitchPercent}%\">' + $line + '</prosody></speak>';" +
-                "  try { $s.SpeakSsml($ssml) } catch { $s.Speak($line) };" +
+                "  try { $s.SpeakSsml($ssml) } catch { $s.Speak(($line -replace '<[^>]+>', ' ')) };" +
                 " };" +
                 " [Console]::Out.WriteLine('__DONE__'); [Console]::Out.Flush();" +
                 "}";
@@ -95,6 +95,12 @@ namespace TalkOut.Audio
                 string line = text.Replace("\r", " ").Replace("\n", " ")
                     .Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
                     .Replace("'", "&apos;");
+                // awkward pauses are load-bearing: turn ellipses and em-dash
+                // beats into real dead air
+                line = line.Replace("…", "...")
+                    .Replace("...", " <break time=\"650ms\"/> ")
+                    .Replace(" — ", " <break time=\"350ms\"/> ")
+                    .Replace("Mmm.", "Mmm. <break time=\"500ms\"/> ");
                 System.Threading.Interlocked.Increment(ref pendingLines);
                 process.StandardInput.WriteLine(line);
                 process.StandardInput.Flush();

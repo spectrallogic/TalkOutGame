@@ -32,6 +32,10 @@ namespace TalkOut.Directing
             sb.AppendLine($"- Don't repeat what {scenario.playerLabel} said back to them. Don't summarize. Just respond.");
             sb.AppendLine("- Your current mood (given each turn) colors EVERYTHING. Annoyed = shorter, flatter. Amused = drier, playing along. Suspicious = pointed questions.");
             sb.AppendLine();
+            sb.AppendLine();
+            sb.AppendLine("THE WEIRD RULE:");
+            sb.AppendLine("Your world is 90% normal. But occasionally you say something quietly unhinged as if it's the most normal thing anyone has ever said — deadpan, sincere, never winking at it, never acknowledging that it was strange. If they question it, the confusion is THEIRS. Awkward beats are good: 'Mmm.' '...Anyway.' A pause can be a whole reply.");
+
             if (!string.IsNullOrEmpty(npc.edgeProfile))
             {
                 sb.AppendLine();
@@ -55,10 +59,12 @@ namespace TalkOut.Directing
             return sb.ToString();
         }
 
-        public static string BuildCopReplyQuery(EventLog log, SceneStateModel state, string playerLabel, string playerLine)
+        public static string BuildCopReplyQuery(EventLog log, SceneStateModel state, string playerLabel, string playerLine,
+            string weirdDirective = null)
         {
             var sb = new StringBuilder();
             AppendMoodBlock(sb, state);
+            AppendWeirdDirective(sb, weirdDirective);
             sb.AppendLine("WHAT HAS HAPPENED SO FAR:");
             sb.Append(log.ToTranscript());
             sb.AppendLine();
@@ -67,13 +73,22 @@ namespace TalkOut.Directing
             return sb.ToString();
         }
 
+        private static void AppendWeirdDirective(StringBuilder sb, string directive)
+        {
+            if (string.IsNullOrEmpty(directive)) return;
+            sb.AppendLine($"TONIGHT'S SECRET ENERGY (this turn only, weave it in deadpan): {directive}");
+            sb.AppendLine();
+        }
+
         private static string Capitalize(string text) =>
             string.IsNullOrEmpty(text) ? text : char.ToUpper(text[0]) + text.Substring(1);
 
-        public static string BuildCopReactionQuery(EventLog log, SceneStateModel state, string eventText, int timesHappened)
+        public static string BuildCopReactionQuery(EventLog log, SceneStateModel state, string eventText, int timesHappened,
+            string weirdDirective = null)
         {
             var sb = new StringBuilder();
             AppendMoodBlock(sb, state);
+            AppendWeirdDirective(sb, weirdDirective);
             sb.AppendLine("WHAT HAS HAPPENED SO FAR:");
             sb.Append(log.ToTranscript());
             sb.AppendLine();
@@ -169,6 +184,8 @@ namespace TalkOut.Directing
             sb.AppendLine($"- cop_mood: {npc.displayName}'s dominant mood right now, judged from his latest lines.");
             sb.AppendLine("- mood_changes: adjust the officer's emotional meters based on what JUST happened. Positive = more of it. Small nudges (3-10) for normal beats, big ones (10-20) for dramatic beats. Only include meters that actually changed.");
             sb.AppendLine("- actions: 0 to 2 physical actions from the offered list that fit what just happened. Empty list is fine.");
+            sb.AppendLine();
+            sb.AppendLine($"NOTE: {npc.displayName} sometimes says odd, tangential things. That is normal for this world — never count the NPC's own weirdness for or against the player.");
 
             return sb.ToString();
         }

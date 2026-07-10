@@ -17,12 +17,14 @@ namespace TalkOut.Directing
         public LLMAgent agent;
 
         private LlmConfig config;
+        private ScenarioDefinition scenarioData;
         private string npcName = "Officer";
         private string playerLabel = "the driver";
 
         public void Configure(ScenarioDefinition scenario, LlmConfig llmConfig)
         {
             config = llmConfig;
+            scenarioData = scenario;
             playerLabel = scenario.playerLabel;
             var npc = scenario.GetNpc(scenario.respondingNpcId);
             if (npc != null) npcName = npc.displayName;
@@ -36,7 +38,8 @@ namespace TalkOut.Directing
         public async Task<CopReply> ReplyAsync(EventLog log, SceneStateModel state, string playerLine,
             Action<string> onPartial, CancellationToken ct)
         {
-            string query = PromptBuilder.BuildCopReplyQuery(log, state, playerLabel, playerLine);
+            string query = PromptBuilder.BuildCopReplyQuery(
+                log, state, playerLabel, playerLine, WeirdnessDeck.Draw(scenarioData));
             string raw = await RunChat(query, onPartial, ct);
             if (raw == null) return new CopReply { Spoken = FallbackLibrary.GetCopLine("cop reply failed") };
             var reply = SplitReply(raw);
@@ -50,7 +53,8 @@ namespace TalkOut.Directing
         public async Task<CopReply> ReactToEventAsync(EventLog log, SceneStateModel state, string eventText,
             int timesHappened, Action<string> onPartial, CancellationToken ct)
         {
-            string query = PromptBuilder.BuildCopReactionQuery(log, state, eventText, timesHappened);
+            string query = PromptBuilder.BuildCopReactionQuery(
+                log, state, eventText, timesHappened, WeirdnessDeck.Draw(scenarioData));
             string raw = await RunChat(query, onPartial, ct);
             if (raw == null) return new CopReply(); // failure on a reaction = officer ignores it
             var reply = SplitReply(raw);

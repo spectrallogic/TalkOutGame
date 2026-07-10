@@ -4,7 +4,7 @@ using TalkOut.Core;
 
 namespace TalkOut.Audio
 {
-    public enum MusicStyle { Menu, Night, Romantic }
+    public enum MusicStyle { Menu, Night, Romantic, Royal }
 
     /// Procedurally synthesized background loop — no audio assets. A jazzy
     /// ii-V-I-ish progression with triangle bass, soft chord stabs, a seeded
@@ -42,22 +42,35 @@ namespace TalkOut.Audio
         // ------------------------------------------------------------------
         private AudioClip Compose()
         {
-            float bpm = style == MusicStyle.Menu ? 104f : style == MusicStyle.Night ? 96f : 82f;
+            float bpm = style == MusicStyle.Menu ? 104f
+                : style == MusicStyle.Night ? 96f
+                : style == MusicStyle.Royal ? 92f : 82f;
             double beat = 60.0 / bpm;
             int bars = 8;
             int totalSamples = (int)(SampleRate * beat * 4 * bars);
             var buffer = new float[totalSamples];
             var rng = new System.Random((int)style * 7919 + 42); // deterministic per style
 
-            // C-rooted: Cmaj7 / Am7 / Dm7 / G7, twice around
-            int[] barRoots = { 0, -3, 2, -5, 0, -3, 2, -5 };
-            int[][] chordIntervals =
-            {
-                new[] { 0, 4, 7, 11 },  // maj7
-                new[] { 0, 3, 7, 10 },  // m7
-                new[] { 0, 3, 7, 10 },  // m7
-                new[] { 0, 4, 7, 10 },  // dom7
-            };
+            // C-rooted: Cmaj7 / Am7 / Dm7 / G7 twice around — except Royal,
+            // which walks a minor court progression: Am / F / C / E
+            int[] barRoots = style == MusicStyle.Royal
+                ? new[] { -3, 5, 0, 4, -3, 5, 0, 4 }
+                : new[] { 0, -3, 2, -5, 0, -3, 2, -5 };
+            int[][] chordIntervals = style == MusicStyle.Royal
+                ? new[]
+                {
+                    new[] { 0, 3, 7, 12 },  // minor
+                    new[] { 0, 4, 7, 11 },  // maj7
+                    new[] { 0, 4, 7, 12 },  // major
+                    new[] { 0, 4, 7, 10 },  // dom (E7 pull back to Am)
+                }
+                : new[]
+                {
+                    new[] { 0, 4, 7, 11 },  // maj7
+                    new[] { 0, 3, 7, 10 },  // m7
+                    new[] { 0, 3, 7, 10 },  // m7
+                    new[] { 0, 4, 7, 10 },  // dom7
+                };
             int[] pentatonic = { 0, 2, 4, 7, 9, 12, 14 };
 
             const double bassRoot = 65.41;   // C2
@@ -86,7 +99,7 @@ namespace TalkOut.Audio
                 }
 
                 // chords
-                if (style == MusicStyle.Romantic)
+                if (style == MusicStyle.Romantic || style == MusicStyle.Royal)
                 {
                     foreach (int interval in chord) // sustained pad
                     {
@@ -107,14 +120,14 @@ namespace TalkOut.Audio
                 // melody: sparse seeded eighths, pentatonic over the root
                 for (int eighth = 0; eighth < 8; eighth++)
                 {
-                    if (rng.NextDouble() > (style == MusicStyle.Romantic ? 0.30 : 0.42)) continue;
+                    if (rng.NextDouble() > (style == MusicStyle.Romantic || style == MusicStyle.Royal ? 0.30 : 0.42)) continue;
                     int degree = pentatonic[rng.Next(pentatonic.Length)];
                     double length = beat * (rng.NextDouble() > 0.7 ? 1.0 : 0.5) * 0.9;
                     Note(buffer, barStart + eighth * 0.5 * beat, length, Freq(melodyRoot, root + degree), 0.085f, Wave.Sine);
                 }
 
-                // hats: brushed 8ths (not for Romantic)
-                if (style != MusicStyle.Romantic)
+                // hats: brushed 8ths (not for the mellow styles)
+                if (style != MusicStyle.Romantic && style != MusicStyle.Royal)
                 {
                     for (int eighth = 0; eighth < 8; eighth++)
                     {

@@ -36,6 +36,10 @@ namespace TalkOut.UI
         private Label outcomeTime;
         private Label outcomeText;
 
+        private Button retryButton;
+        private Button menuButton;
+        private System.Action primaryAction; // what the retry-slot button does right now
+
         private Label liveNpcLabel;
         private float thinkingTime;
         private bool chatMode;
@@ -77,12 +81,18 @@ namespace TalkOut.UI
                 }
             });
 
-            root.Q<Button>("retry-button").clicked += () =>
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            var menuButton = root.Q<Button>("menu-button");
+            retryButton = root.Q<Button>("retry-button");
+            primaryAction = () => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            retryButton.clicked += () => primaryAction?.Invoke();
+
+            menuButton = root.Q<Button>("menu-button");
             if (Application.CanStreamedLevelBeLoaded("MainMenu"))
             {
-                menuButton.clicked += () => SceneManager.LoadScene("MainMenu");
+                menuButton.clicked += () =>
+                {
+                    PlaylistManager.Stop();
+                    SceneManager.LoadScene("MainMenu");
+                };
             }
             else
             {
@@ -285,6 +295,24 @@ namespace TalkOut.UI
             }
             outcomeTime.text = $"⏱ {FormatTime(turnController.ElapsedSeconds)}  ·  {turnController.PlayerTurnsTaken} lines";
             outcomeText.text = outcome.resultText;
+
+            // PLAY ALL flow: win advances the run; loss retries this level.
+            if (PlaylistManager.Active && outcome.isWin)
+            {
+                PlaylistManager.RecordWin(turnController.LastRunScore);
+                if (!PlaylistManager.IsLastLevel)
+                {
+                    outcomeText.text += $"\n\nRUN SCORE SO FAR: {PlaylistManager.RunScore:N0}";
+                    retryButton.text = "NEXT LEVEL ▶";
+                    primaryAction = PlaylistManager.LoadNext;
+                }
+                else
+                {
+                    outcomeText.text += $"\n\n🏆 RUN COMPLETE — TOTAL {PlaylistManager.RunScore:N0}";
+                    retryButton.style.display = DisplayStyle.None;
+                    PlaylistManager.Stop();
+                }
+            }
             outcomeOverlay.style.display = DisplayStyle.Flex;
             if (firstPersonRig != null)
             {

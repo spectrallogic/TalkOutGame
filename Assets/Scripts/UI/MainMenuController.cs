@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -10,6 +11,7 @@ using TalkOut.Save;
 
 namespace TalkOut.UI
 {
+    /// Menu v4: home (PLAY / settings / quit) -> level-select grid + PLAY ALL.
     [RequireComponent(typeof(UIDocument))]
     public class MainMenuController : MonoBehaviour
     {
@@ -25,20 +27,31 @@ namespace TalkOut.UI
         public LlmConfig llmConfig;
         public List<LevelEntry> levels = new List<LevelEntry>();
 
+        private VisualElement homePanel;
+        private VisualElement selectPanel;
+
         private void OnEnable()
         {
             var root = GetComponent<UIDocument>().rootVisualElement;
+            homePanel = root.Q<VisualElement>("home-panel");
+            selectPanel = root.Q<VisualElement>("select-panel");
+
+            root.Q<Button>("play-button").clicked += () => ShowSelect(true);
+            root.Q<Button>("back-button").clicked += () => ShowSelect(false);
             root.Q<Button>("quit-button").clicked += Application.Quit;
 
             var save = SaveSystem.Load();
             root.Q<Label>("total-score").text =
                 $"TOTAL SCORE  <color=#FFFFFF>{save.TotalScore:N0}</color>";
 
-            var levelsHost = root.Q<VisualElement>("levels");
-            foreach (var level in levels)
+            var grid = root.Q<VisualElement>("level-grid");
+            for (int i = 0; i < levels.Count; i++)
             {
-                levelsHost.Add(BuildLevelCard(level, save));
+                grid.Add(BuildGridCard(i, levels[i], save));
             }
+
+            root.Q<VisualElement>("playall-card").RegisterCallback<ClickEvent>(_ =>
+                PlaylistManager.StartAll(levels.Select(l => l.sceneName).ToArray()));
 
             WireSettings(root);
 
@@ -55,50 +68,40 @@ namespace TalkOut.UI
             }
         }
 
-        private VisualElement BuildLevelCard(LevelEntry level, SaveData save)
+        private void ShowSelect(bool show)
+        {
+            homePanel.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
+            selectPanel.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private VisualElement BuildGridCard(int index, LevelEntry level, SaveData save)
         {
             var card = new VisualElement();
-            card.AddToClassList("level-card");
+            card.AddToClassList("grid-card");
 
-            var header = new VisualElement();
-            header.AddToClassList("level-header");
-            var left = new VisualElement();
-            var name = new Label(level.title);
-            name.AddToClassList("level-name");
+            var number = new Label($"LEVEL {index + 1}");
+            number.AddToClassList("grid-number");
+            card.Add(number);
+
+            var title = new Label(level.title);
+            title.AddToClassList("grid-title");
+            card.Add(title);
+
             var desc = new Label(level.description);
-            desc.AddToClassList("level-desc");
-            left.Add(name);
-            left.Add(desc);
-            header.Add(left);
+            desc.AddToClassList("grid-desc");
+            card.Add(desc);
 
             save.scenarios.TryGetValue(level.scenarioId, out var record);
-            var stats = new Label(record != null && record.timesPlayed > 0
-                ? $"BEST {record.BestScore:N0}\n{record.timesWon}/{record.timesPlayed} wins"
-                : "NEW");
-            stats.AddToClassList("level-stats");
-            header.Add(stats);
-            card.Add(header);
-
-            // local leaderboard: top runs
-            if (record != null && record.topRuns.Count > 0)
+            string statsText = "— not attempted —";
+            if (record != null && record.timesPlayed > 0)
             {
-                for (int i = 0; i < record.topRuns.Count; i++)
-                {
-                    var run = record.topRuns[i];
-                    var row = new VisualElement();
-                    row.AddToClassList("run-row");
-                    var rank = new Label($"#{i + 1}");
-                    rank.AddToClassList("run-rank");
-                    var detail = new Label($"{FormatTime(run.timeSeconds)}  ·  {run.turns} lines  ·  {run.when}");
-                    detail.AddToClassList("run-detail");
-                    var score = new Label($"{run.score:N0}");
-                    score.AddToClassList("run-score");
-                    row.Add(rank);
-                    row.Add(detail);
-                    row.Add(score);
-                    card.Add(row);
-                }
+                statsText = record.BestScore > 0
+                    ? $"BEST {record.BestScore:N0}  ·  ⏱ {FormatTime(record.bestTimeSeconds)}  ·  {record.timesWon}/{record.timesPlayed} wins"
+                    : $"{record.timesWon}/{record.timesPlayed} wins";
             }
+            var stats = new Label(statsText);
+            stats.AddToClassList("grid-stats");
+            card.Add(stats);
 
             card.RegisterCallback<ClickEvent>(_ => SceneManager.LoadScene(level.sceneName));
             return card;

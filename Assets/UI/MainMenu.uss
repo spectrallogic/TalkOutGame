@@ -5,6 +5,10 @@
     background-color: rgba(8, 10, 18, 0.55); /* diorama shows through */
 }
 
+.panel {
+    align-items: center;
+}
+
 .tagline {
     font-size: 15px;
     -unity-font-style: bold;
@@ -18,7 +22,7 @@
 }
 
 .title {
-    font-size: 96px;
+    font-size: 100px;
     -unity-font-style: bold;
     color: rgb(248, 246, 240);
     letter-spacing: 4px;
@@ -34,101 +38,37 @@
     border-width: 2px;
     border-color: rgb(0, 0, 0);
     padding: 5px 16px;
-    margin-bottom: 14px;
+    margin-bottom: 34px;
 }
 
-.total-score {
-    font-size: 20px;
+.play-button {
+    width: 320px;
+    height: 74px;
+    font-size: 30px;
     -unity-font-style: bold;
-    color: rgb(245, 197, 24);
-    background-color: rgba(8, 8, 10, 0.9);
-    border-radius: 10px;
-    border-width: 2px;
+    letter-spacing: 2px;
+    border-radius: 16px;
+    border-width: 3px;
     border-color: rgb(0, 0, 0);
-    padding: 6px 18px;
-    margin-bottom: 18px;
+    background-color: rgb(245, 197, 24);
+    color: rgb(16, 16, 18);
+    margin-bottom: 16px;
 }
 
-.levels {
-    align-items: stretch;
-    min-width: 640px;
-}
-
-.level-card {
-    background-color: rgba(8, 8, 10, 0.92);
-    border-radius: 14px;
-    border-width: 2px;
-    border-color: rgb(60, 64, 78);
-    padding: 12px 20px;
-    margin: 6px 0;
-}
-
-.level-card:hover {
-    border-color: rgb(245, 197, 24);
-    background-color: rgba(16, 17, 24, 0.95);
-}
-
-.level-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.level-name {
-    font-size: 21px;
-    -unity-font-style: bold;
-    color: rgb(248, 246, 240);
-}
-
-.level-desc {
-    font-size: 13px;
-    color: rgb(160, 166, 184);
-    margin-top: 2px;
-}
-
-.level-stats {
-    font-size: 15px;
-    -unity-font-style: bold;
-    color: rgb(245, 197, 24);
-    -unity-text-align: middle-right;
-}
-
-.run-row {
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 3px;
-    padding: 2px 8px;
-    background-color: rgba(255, 255, 255, 0.04);
-    border-radius: 6px;
-}
-
-.run-rank {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: rgb(245, 197, 24);
-    min-width: 26px;
-}
-
-.run-detail {
-    font-size: 13px;
-    color: rgb(200, 206, 222);
-}
-
-.run-score {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: rgb(248, 246, 240);
+.play-button:hover {
+    background-color: rgb(255, 216, 70);
+    scale: 1.03;
 }
 
 .button-row {
     flex-direction: row;
-    margin-top: 18px;
+    margin-top: 4px;
 }
 
 .menu-button {
-    width: 180px;
-    height: 42px;
-    font-size: 15px;
+    width: 170px;
+    height: 40px;
+    font-size: 14px;
     -unity-font-style: bold;
     border-radius: 10px;
     border-width: 2px;
@@ -143,13 +83,126 @@
 }
 
 .model-status {
-    margin-top: 16px;
+    margin-top: 18px;
     font-size: 13px;
     color: rgb(120, 190, 140);
     background-color: rgba(8, 8, 10, 0.8);
     border-radius: 8px;
     padding: 3px 10px;
 }
+
+/* ---------- level select ---------- */
+
+.select-title {
+    font-size: 34px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(248, 246, 240);
+    text-shadow: 3px 3px 0 rgb(0, 0, 0);
+    margin-bottom: 6px;
+}
+
+.total-score {
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+    background-color: rgba(8, 8, 10, 0.9);
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(0, 0, 0);
+    padding: 5px 16px;
+    margin-bottom: 18px;
+}
+
+.level-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1000px;
+}
+
+.grid-card {
+    width: 290px;
+    height: 190px;
+    margin: 8px;
+    padding: 14px 16px;
+    background-color: rgba(8, 8, 10, 0.92);
+    border-radius: 14px;
+    border-width: 2px;
+    border-color: rgb(60, 64, 78);
+    justify-content: space-between;
+}
+
+.grid-card:hover {
+    border-color: rgb(245, 197, 24);
+    background-color: rgba(20, 21, 30, 0.96);
+    scale: 1.02;
+}
+
+.grid-number {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(16, 16, 18);
+    background-color: rgb(245, 197, 24);
+    border-radius: 6px;
+    padding: 2px 8px;
+    align-self: flex-start;
+}
+
+.grid-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(248, 246, 240);
+    white-space: normal;
+}
+
+.grid-desc {
+    font-size: 12px;
+    color: rgb(165, 171, 190);
+    white-space: normal;
+}
+
+.grid-stats {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+}
+
+.playall-card {
+    width: 920px;
+    max-width: 92%;
+    margin-top: 10px;
+    padding: 14px 22px;
+    background-color: rgba(35, 28, 6, 0.95);
+    border-radius: 14px;
+    border-width: 2px;
+    border-color: rgb(245, 197, 24);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.playall-card:hover {
+    background-color: rgba(55, 44, 10, 0.97);
+    scale: 1.01;
+}
+
+.playall-title {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(245, 197, 24);
+}
+
+.playall-desc {
+    font-size: 13px;
+    color: rgb(220, 210, 170);
+}
+
+.back-button {
+    margin-top: 16px;
+}
+
+/* ---------- settings ---------- */
 
 .settings-overlay {
     position: absolute;

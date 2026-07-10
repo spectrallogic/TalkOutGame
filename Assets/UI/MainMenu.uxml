@@ -1,19 +1,29 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="MainMenu.uss" />
     <ui:VisualElement name="root" class="menu-root">
-        <ui:Label name="tagline" text="YOUR MOUTH. YOUR ONLY WAY OUT." class="tagline" />
-        <ui:Label name="title" text="TALK&lt;color=#F5C518&gt;OUT&lt;/color&gt;" class="title" enable-rich-text="true" />
-        <ui:Label text="THE HILARIOUS PERSUASION GAME" class="subtitle" />
 
-        <ui:Label name="total-score" text="" class="total-score" enable-rich-text="true" />
-
-        <ui:VisualElement name="levels" class="levels" />
-
-        <ui:VisualElement class="button-row">
-            <ui:Button name="settings-button" text="⚙ SETTINGS" class="menu-button" />
-            <ui:Button name="quit-button" text="QUIT" class="menu-button" />
+        <ui:VisualElement name="home-panel" class="panel">
+            <ui:Label name="tagline" text="YOUR MOUTH. YOUR ONLY WAY OUT." class="tagline" />
+            <ui:Label name="title" text="TALK&lt;color=#F5C518&gt;OUT&lt;/color&gt;" class="title" enable-rich-text="true" />
+            <ui:Label text="THE HILARIOUS PERSUASION GAME" class="subtitle" />
+            <ui:Button name="play-button" text="▶  PLAY" class="play-button" />
+            <ui:VisualElement class="button-row">
+                <ui:Button name="settings-button" text="⚙ SETTINGS" class="menu-button" />
+                <ui:Button name="quit-button" text="QUIT" class="menu-button" />
+            </ui:VisualElement>
+            <ui:Label name="model-status" text="" class="model-status" />
         </ui:VisualElement>
-        <ui:Label name="model-status" text="" class="model-status" />
+
+        <ui:VisualElement name="select-panel" class="panel hidden">
+            <ui:Label text="CHOOSE YOUR SITUATION" class="select-title" />
+            <ui:Label name="total-score" text="" class="total-score" enable-rich-text="true" />
+            <ui:VisualElement name="level-grid" class="level-grid" />
+            <ui:VisualElement name="playall-card" class="playall-card">
+                <ui:Label text="🏆  PLAY ALL" class="playall-title" />
+                <ui:Label text="Every situation in order · one cumulative run score" class="playall-desc" />
+            </ui:VisualElement>
+            <ui:Button name="back-button" text="◀ BACK" class="menu-button back-button" />
+        </ui:VisualElement>
 
         <ui:VisualElement name="settings-overlay" class="settings-overlay hidden">
             <ui:VisualElement class="settings-card">
