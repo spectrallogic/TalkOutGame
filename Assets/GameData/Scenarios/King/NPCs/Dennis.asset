@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eafb09f2326b8ff44a90a420a65d6612, type: 3}
+  m_Name: Dennis
+  m_EditorClassIdentifier: 
+  id: passenger
+  displayName: Dennis
+  intelligence: 60
+  ego: 10
+  fear: 30
+  sympathy: 70
+  patience: 95
+  personality: "The royal executioner. Quiet, professional, weirdly polite. Treats
+    beheadings like a trade job. Privately hopes the prisoner talks their way out
+    \u2014 less paperwork."
+  edgeProfile: 
+  faceSet: {fileID: 11400000, guid: 4f7cee584d574e84e82fd74a7205d440, type: 2}
+  prefab: {fileID: 0}

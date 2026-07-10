@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd2b74fb85ee189478a3ce90ab6f047c, type: 3}
+  m_Name: OfficerOrderOut
+  m_EditorClassIdentifier: 
+  id: OfficerOrderOut
+  llmDescription: "officer orders the driver OUT of the car and arrests them (ENDS
+    THE SCENE \u2014 reserve for when the driver has truly earned it)"
+  narrationText: The officer yanks your door open. "Out of the vehicle. NOW. Hands
+    where I can see them."
+  actorId: officer
+  targetPropId: 
+  animationKey: 
+  moveToLocationId: 
+  expressionOverride: 
+  engineEffects: []
+  availabilityConditions: []
+  endsScene: 1
+  outcomeId: arrest

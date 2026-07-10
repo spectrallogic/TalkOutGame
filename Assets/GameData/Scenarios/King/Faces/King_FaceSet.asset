@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f355217f3db15e044aa63ceebbe28008, type: 3}
+  m_Name: King_FaceSet
+  m_EditorClassIdentifier: 
+  defaultFace: {fileID: 2800000, guid: 697f34fabb2f04f4290e7f6897c2510b, type: 3}
+  faces:
+  - emotion: neutral
+    texture: {fileID: 2800000, guid: 697f34fabb2f04f4290e7f6897c2510b, type: 3}
+  - emotion: suspicious
+    texture: {fileID: 2800000, guid: 855e7eabe64fabb479a23403fdf88146, type: 3}
+  - emotion: angry
+    texture: {fileID: 2800000, guid: 697be54d768895840b6f67caa9f415e3, type: 3}
+  - emotion: amused
+    texture: {fileID: 2800000, guid: cad51a6e71d202d46a94c0d6b0b054da, type: 3}
+  - emotion: confused
+    texture: {fileID: 2800000, guid: 249dfa7cf1542784e8e02f64002930b1, type: 3}
+  - emotion: panicked
+    texture: {fileID: 2800000, guid: 9fe03097160dd8b4983689065ba36428, type: 3}
+  - emotion: warm
+    texture: {fileID: 2800000, guid: ff80397cd33df9d47ba864050f8a5fd0, type: 3}
+  - emotion: defeated
+    texture: {fileID: 2800000, guid: cbde5b9ada995834e8bffde679b91cdb, type: 3}
+  - emotion: blink
+    texture: {fileID: 2800000, guid: bd017d57ea886c349a1af5582b027a6d, type: 3}
