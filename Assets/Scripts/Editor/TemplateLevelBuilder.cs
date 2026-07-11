@@ -131,10 +131,26 @@ namespace TalkOut.EditorTools
                 crowdGo.AddComponent<AudioSource>();
                 var reactor = crowdGo.AddComponent<CrowdAudioReactor>();
                 reactor.turnController = turnController;
+                // real recordings drop in by convention; synth covers the gaps
+                reactor.coughClip = LoadClip("cough");
+                reactor.murmurClip = LoadClip("murmur");
+                reactor.chuckleClip = LoadClip("laugh_small");
+                reactor.laughClip = LoadClip("laugh_big");
+                reactor.booClip = LoadClip("boo");
             }
 
             EditorSceneManager.SaveScene(scene, $"Assets/Scenes/{template.sceneName}.unity");
             Debug.Log($"[TalkOut] Template level built: {template.sceneName}");
+        }
+
+        private static AudioClip LoadClip(string baseName)
+        {
+            foreach (var ext in new[] { "wav", "ogg", "mp3" })
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/Audio/Crowd/{baseName}.{ext}");
+                if (clip != null) return clip;
+            }
+            return null;
         }
 
         // ------------------------------------------------------------------
@@ -222,7 +238,7 @@ namespace TalkOut.EditorTools
 
             var club = new GameObject("Club").transform;
             TalkOutSceneBuilder.Prim(PrimitiveType.Plane, "Floor", club, Vector3.zero, new Vector3(2.4f, 1, 2.4f), "Stone_Dark");
-            TalkOutSceneBuilder.Prim(PrimitiveType.Cube, "BrickWall", club, new Vector3(0, 1.8f, -4.2f), new Vector3(14f, 3.6f, 0.2f), "Car_Rust");
+            TalkOutSceneBuilder.Prim(PrimitiveType.Cube, "BrickWall", club, new Vector3(0, 1.8f, -4.2f), new Vector3(14f, 3.6f, 0.2f), "Brick_Red");
             TalkOutSceneBuilder.Prim(PrimitiveType.Cube, "WallLeft", club, new Vector3(-7f, 1.8f, 2f), new Vector3(0.2f, 3.6f, 14f), "Pants_Dark");
             TalkOutSceneBuilder.Prim(PrimitiveType.Cube, "WallRight", club, new Vector3(7f, 1.8f, 2f), new Vector3(0.2f, 3.6f, 14f), "Pants_Dark");
             TalkOutSceneBuilder.Prim(PrimitiveType.Cube, "WallBack", club, new Vector3(0, 1.8f, 9f), new Vector3(14f, 3.6f, 0.2f), "Pants_Dark");

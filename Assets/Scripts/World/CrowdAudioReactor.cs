@@ -12,6 +12,14 @@ namespace TalkOut.World
     {
         public TurnController turnController;
 
+        [Header("Real recordings (optional — see Assets/Audio/README.md)")]
+        [Tooltip("Each slot uses the assigned clip when set, else a synthesized fallback")]
+        public AudioClip coughClip;
+        public AudioClip murmurClip;
+        public AudioClip chuckleClip;
+        public AudioClip laughClip;
+        public AudioClip booClip;
+
         private const int SampleRate = 22050;
         private AudioSource source;
         private AudioClip cough, murmur, chuckle, laughWave, boo;
@@ -26,11 +34,11 @@ namespace TalkOut.World
             source.volume = 0.55f;
             rng = new System.Random(1234);
 
-            cough = Render("cough", 0.5f, RenderCough);
-            murmur = Render("murmur", 1.6f, RenderMurmur);
-            chuckle = Render("chuckle", 1.4f, (buf) => RenderLaugh(buf, voices: 3, gain: 0.25f));
-            laughWave = Render("laugh", 3.2f, (buf) => RenderLaugh(buf, voices: 14, gain: 0.5f));
-            boo = Render("boo", 2.2f, RenderBoo);
+            cough = coughClip != null ? coughClip : Render("cough", 0.5f, RenderCough);
+            murmur = murmurClip != null ? murmurClip : Render("murmur", 1.6f, RenderMurmur);
+            chuckle = chuckleClip != null ? chuckleClip : Render("chuckle", 1.4f, (buf) => RenderLaugh(buf, voices: 3, gain: 0.25f));
+            laughWave = laughClip != null ? laughClip : Render("laugh", 3.2f, (buf) => RenderLaugh(buf, voices: 14, gain: 0.5f));
+            boo = booClip != null ? booClip : Render("boo", 2.2f, RenderBoo);
 
             ScheduleAmbient();
             if (turnController != null) turnController.CopMoodChanged += OnMood;

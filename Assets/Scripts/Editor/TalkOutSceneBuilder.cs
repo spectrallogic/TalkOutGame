@@ -27,6 +27,8 @@ namespace TalkOut.EditorTools
         public static void BuildEverything()
         {
             ApplyGraphicsSettings();
+            MeshForge.BuildAll();
+            TextureForge.BuildAll();
             TalkOutAssetBuilder.GenerateFaces();
             TalkOutAssetBuilder.BuildAssets();
             BuildScenes();
@@ -1012,8 +1014,8 @@ namespace TalkOut.EditorTools
 
             if (standing)
             {
-                StripCollider(Prim(PrimitiveType.Cube, "LegL", t, new Vector3(-0.14f, 0.25f, 0), new Vector3(0.18f, 0.5f, 0.18f), "Pants_Dark"));
-                StripCollider(Prim(PrimitiveType.Cube, "LegR", t, new Vector3(0.14f, 0.25f, 0), new Vector3(0.18f, 0.5f, 0.18f), "Pants_Dark"));
+                RoundedPart("RoundedLimb", "LegL", t, new Vector3(-0.14f, 0.25f, 0), new Vector3(0.18f, 0.5f, 0.18f), "Pants_Dark");
+                RoundedPart("RoundedLimb", "LegR", t, new Vector3(0.14f, 0.25f, 0), new Vector3(0.18f, 0.5f, 0.18f), "Pants_Dark");
             }
 
             float hipY = standing ? 0.5f : 0f;
@@ -1023,8 +1025,10 @@ namespace TalkOut.EditorTools
             var torsoRb = torsoPivot.gameObject.AddComponent<Rigidbody>();
             torsoRb.isKinematic = true;
 
-            var body = StripCollider(Prim(PrimitiveType.Cube, "Body", torsoPivot, new Vector3(0, 0.42f, 0), new Vector3(0.55f, 0.8f, 0.32f), shirtMat));
-            var head = StripCollider(Prim(PrimitiveType.Cube, "Head", torsoPivot, new Vector3(0, 1.06f, 0), new Vector3(0.45f, 0.45f, 0.45f), skinMat));
+            var body = RoundedPart("TaperedTorso", "Body", torsoPivot, new Vector3(0, 0.42f, 0), new Vector3(0.58f, 0.85f, 0.34f), shirtMat);
+            var head = RoundedPart("RoundedHead", "Head", torsoPivot, new Vector3(0, 1.06f, 0), new Vector3(0.45f, 0.45f, 0.45f), skinMat);
+            // a neck so the head doesn't float
+            RoundedPart("RoundedLimb", "Neck", torsoPivot, new Vector3(0, 0.85f, 0), new Vector3(0.14f, 0.12f, 0.14f), skinMat);
 
             if (hatMat != null)
             {
@@ -1075,8 +1079,8 @@ namespace TalkOut.EditorTools
 
         private static void MakeFloppyArm(Transform torsoPivot, Rigidbody torsoRb, string name, Vector3 shoulderLocal, string mat)
         {
-            var arm = Prim(PrimitiveType.Cube, name, torsoPivot,
-                shoulderLocal + new Vector3(0, -0.24f, 0), new Vector3(0.15f, 0.5f, 0.15f), mat);
+            var arm = RoundedPart("RoundedLimb", name, torsoPivot,
+                shoulderLocal + new Vector3(0, -0.24f, 0), new Vector3(0.15f, 0.5f, 0.15f), mat, withCollider: true);
             arm.layer = 2; // Ignore Raycast — arms must not block interactable clicks
 
             var rb = arm.AddComponent<Rigidbody>();
@@ -1125,6 +1129,26 @@ namespace TalkOut.EditorTools
                 EditorUtility.SetDirty(profile);
             }
 
+            // added later than the profile itself: bolt on if missing (existing
+            // profiles get upgraded instead of recreated)
+            if (!profile.HasSettings<DepthOfField>())
+            {
+                var dof = profile.AddSettings<DepthOfField>();
+                dof.enabled.Override(true);
+                dof.focusDistance.Override(3.2f);   // conversation distance
+                dof.aperture.Override(7f);          // mild — background softens, HUD-adjacent stays sharp
+                dof.focalLength.Override(42f);
+                EditorUtility.SetDirty(profile);
+            }
+            if (!profile.HasSettings<AmbientOcclusion>())
+            {
+                var ao = profile.AddSettings<AmbientOcclusion>();
+                ao.enabled.Override(true);
+                ao.mode.Override(AmbientOcclusionMode.MultiScaleVolumetricObscurance);
+                ao.intensity.Override(0.55f);
+                EditorUtility.SetDirty(profile);
+            }
+
             var volumeGo = new GameObject("PostFXVolume") { layer = PostFxLayer };
             var volume = volumeGo.AddComponent<PostProcessVolume>();
             volume.isGlobal = true;
@@ -1161,6 +1185,29 @@ namespace TalkOut.EditorTools
             light.intensity = intensity;
             light.range = range;
             return light;
+        }
+
+        /// A body part using a forged rounded mesh instead of a raw primitive.
+        internal static GameObject RoundedPart(string meshName, string name, Transform parent,
+            Vector3 localPos, Vector3 localScale, string matName, bool withCollider = false)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = localScale;
+            var filter = go.AddComponent<MeshFilter>();
+            filter.sharedMesh = MeshForge.Load(meshName);
+            var renderer = go.AddComponent<MeshRenderer>();
+            if (matName != null)
+            {
+                var mat = AssetDatabase.LoadAssetAtPath<Material>($"Assets/Art/Materials/{matName}.mat");
+                if (mat != null) renderer.sharedMaterial = mat;
+            }
+            if (withCollider)
+            {
+                go.AddComponent<BoxCollider>().size = Vector3.one * 0.95f;
+            }
+            return go;
         }
 
         internal static GameObject Prim(

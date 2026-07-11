@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/King.unity
     guid: 8adce3976a555cb40a7d1f5c8854bbae
+  - enabled: 1
+    path: Assets/Scenes/OpenMic.unity
+    guid: 1b14561c3c6fccf44a71a81612c6ea9c
   m_configObjects: {}

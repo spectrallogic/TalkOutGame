@@ -107,22 +107,14 @@ namespace TalkOut.World
                 if (this == null) return;
             }
 
-            // Physical emphasis: every action makes the body react.
+            // Physical emphasis: coded gesture if the key names one, else a flail.
             if (actor != null && actor.wobble != null)
             {
-                actor.wobble.Impulse(ImpulseFor(action.animationKey));
+                if (!actor.wobble.PlayGesture(action.animationKey))
+                {
+                    actor.wobble.Impulse(0.4f);
+                }
                 await Task.Delay(600);
-            }
-        }
-
-        private static float ImpulseFor(string animationKey)
-        {
-            switch (animationKey)
-            {
-                case "panicShake": return 1f;
-                case "laugh": return 0.9f;
-                case "scribble": return 0.5f;
-                default: return 0.4f;
             }
         }
     }

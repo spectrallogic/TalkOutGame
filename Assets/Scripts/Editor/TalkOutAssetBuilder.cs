@@ -932,6 +932,7 @@ namespace TalkOut.EditorTools
             Mat("Prop_Generic", new Color(0.5f, 0.5f, 0.55f));
             Mat("Prop_Coffee", new Color(0.85f, 0.82f, 0.78f));
             Mat("Guardrail", new Color(0.5f, 0.52f, 0.55f), 0.6f);
+            Mat("Brick_Red", new Color(0.48f, 0.22f, 0.16f));
             Mat("Sign_Green", new Color(0.05f, 0.35f, 0.18f), 0.4f);
             Mat("Mountain", new Color(0.05f, 0.06f, 0.10f));
 
