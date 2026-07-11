@@ -20,9 +20,15 @@ MonoBehaviour:
   sympathy: 70
   patience: 95
   personality: "The royal executioner. Quiet, professional, weirdly polite. Treats
-    beheadings like a trade job. Privately hopes the prisoner talks their way out
-    \u2014 less paperwork."
+    beheadings like a trade job \u2014 he takes genuine craftsman's pride in it.
+    Deeply deferential to the king, oddly supportive of prisoners. Privately hopes
+    they talk their way out \u2014 less paperwork."
   edgeProfile: 
-  voiceExamples: []
+  voiceExamples:
+  - Can I chop his balls off now, Your Royal Highness?
+  - The axe is ready whenever, sire. No rush. Well. Some rush.
+  - I sharpened it twice today, Majesty. Twice.
+  - Between us, prisoner? You're doing better than most. Top five, easy.
+  - My mum says hello, Your Grace.
   faceSet: {fileID: 11400000, guid: 4f7cee584d574e84e82fd74a7205d440, type: 2}
   prefab: {fileID: 0}

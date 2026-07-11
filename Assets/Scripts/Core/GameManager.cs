@@ -26,6 +26,7 @@ namespace TalkOut.Core
         public LlmCopBrain llmCopBrain;
         public LlmJudge llmJudge;
         public LlmSidekick llmSidekick;
+        public LlmAddressee llmAddressee;
 
         private void Awake()
         {
@@ -43,6 +44,7 @@ namespace TalkOut.Core
             ICopBrain copBrain;
             IJudge judge;
             ISidekick sidekick = null;
+            IAddressee addressee = null;
             bool wantsSidekick = !string.IsNullOrEmpty(scenario.sidekickNpcId);
             bool modelPresent = llmConfig != null && File.Exists(llmConfig.ResolveModelPath());
 
@@ -56,7 +58,11 @@ namespace TalkOut.Core
                 }
                 copBrain = new MockCopBrain();
                 judge = new MockJudge();
-                if (wantsSidekick) sidekick = new MockSidekick();
+                if (wantsSidekick)
+                {
+                    sidekick = new MockSidekick();
+                    addressee = new MockAddressee();
+                }
             }
             else
             {
@@ -69,10 +75,21 @@ namespace TalkOut.Core
                     llmSidekick.Configure(scenario, llmConfig);
                     sidekick = llmSidekick;
                 }
+                if (wantsSidekick && llmAddressee != null)
+                {
+                    llmAddressee.Configure(llmConfig);
+                    addressee = llmAddressee;
+                }
             }
 
             var performer = FindObjectOfType<WorldPerformer>();
-            turnController.Initialize(scenario, copBrain, judge, performer, sidekick);
+            turnController.Initialize(scenario, copBrain, judge, performer, sidekick, addressee);
+
+            var focusTracker = FindObjectOfType<Player.FocusTracker>();
+            if (focusTracker != null)
+            {
+                turnController.GazeProvider = () => focusTracker.GazedActorId;
+            }
             // (outcome recording + scoring happens inside TurnController at scene end)
 
             foreach (var speaker in FindObjectsOfType<NpcSpeaker>())

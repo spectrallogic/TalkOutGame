@@ -96,6 +96,8 @@ MonoBehaviour:
   - Okay... anyway.
   - You lost me. Take another run at that.
   - I need you to hear how that sounded.
+  sidekickNpcId: 
+  sidekickChatterChance: 0.3
   weirdnessChance: 0.25
   weirdSpice:
   - Share an opinion about a menu item that is WAY too strong. Move on immediately.

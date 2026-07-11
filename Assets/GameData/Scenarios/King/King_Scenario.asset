@@ -104,6 +104,8 @@ MonoBehaviour:
   - Mmm. Dennis, did you understand that? No? Proceed anyway.
   - Repeat that. Slower. Kinglier.
   - The crown grows weary of riddles.
+  sidekickNpcId: passenger
+  sidekickChatterChance: 0.35
   weirdnessChance: 0.25
   weirdSpice:
   - Share a strong opinion about scones. It has nothing to do with anything. It matters

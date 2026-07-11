@@ -216,6 +216,18 @@ namespace TalkOut.Directing
             return sb.ToString();
         }
 
+        public static string BuildSidekickReplyQuery(EventLog log, ScenarioDefinition scenario, string playerLine)
+        {
+            var style = Resolve(scenario.promptStyle);
+            var sb = new StringBuilder();
+            sb.AppendLine(PromptStyleLibrary.Pick(style.historyHeaders));
+            sb.Append(log.ToTranscript());
+            sb.AppendLine();
+            sb.AppendLine($"{Capitalize(scenario.playerLabel)} just spoke directly TO YOU: \"{playerLine}\"");
+            sb.Append("Answer them — one or two short lines, fully in character:");
+            return sb.ToString();
+        }
+
         public static string BuildSidekickQuery(EventLog log, SceneStateModel state, ScenarioDefinition scenario)
         {
             var style = Resolve(scenario.promptStyle);
@@ -226,6 +238,44 @@ namespace TalkOut.Directing
             sb.AppendLine("If you have ONE short line worth saying right now, say it.");
             // contract line: "..." means staying quiet — keep exact
             sb.Append("If you'd stay quiet (which is most of the time), reply with exactly: ...");
+            return sb.ToString();
+        }
+
+        // ---------------- addressee arbitration ----------------
+
+        public static string BuildAddresseeSystemPrompt()
+        {
+            return "You determine who a line of dialogue is addressed to in a scene. " +
+                   "Consider the words first (names, titles, content only one character could answer), " +
+                   "then where the speaker is LOOKING as physical evidence. " +
+                   "Output ONLY one id from the offered list, or unclear.";
+        }
+
+        public static string BuildAddresseeQuery(EventLog log, string playerLine, string gazedActorId,
+            System.Collections.Generic.IReadOnlyList<(string id, string name)> candidates)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("CHARACTERS PRESENT:");
+            foreach (var (id, name) in candidates)
+            {
+                sb.AppendLine($"- {id}: {name}");
+            }
+            sb.AppendLine();
+            if (!string.IsNullOrEmpty(gazedActorId))
+            {
+                var gazed = System.Linq.Enumerable.FirstOrDefault(candidates, c => c.id == gazedActorId);
+                sb.AppendLine($"THE SPEAKER IS CURRENTLY LOOKING AT: {gazed.name ?? gazedActorId}");
+            }
+            else
+            {
+                sb.AppendLine("THE SPEAKER IS NOT LOOKING AT ANYONE IN PARTICULAR.");
+            }
+            sb.AppendLine();
+            sb.AppendLine("RECENT LINES:");
+            sb.Append(log.ToTranscript(8));
+            sb.AppendLine();
+            sb.AppendLine($"The speaker says: \"{playerLine}\"");
+            sb.Append("Addressed to:");
             return sb.ToString();
         }
 

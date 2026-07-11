@@ -55,6 +55,18 @@
     border-color: rgba(0, 0, 0, 0.8);
 }
 
+.focus-hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 43%;
+    -unity-text-align: middle-center;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgba(240, 240, 245, 0.85);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
+
 .interact-hint {
     position: absolute;
     left: 0;

@@ -49,5 +49,18 @@ namespace TalkOut.Directing
     public interface ISidekick
     {
         Task<string> InterjectAsync(EventLog log, SceneStateModel state, CancellationToken ct);
+
+        /// The player addressed THEM directly — they must actually answer.
+        Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine, CancellationToken ct);
+    }
+
+    /// Decides who the player's line is addressed to, weighing the words
+    /// against gaze evidence. Returns an actor id from the candidates,
+    /// or "" when unclear.
+    public interface IAddressee
+    {
+        Task<string> ResolveAsync(EventLog log, string playerLine, string gazedActorId,
+            System.Collections.Generic.IReadOnlyList<(string id, string name)> candidates,
+            CancellationToken ct);
     }
 }

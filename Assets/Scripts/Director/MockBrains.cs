@@ -70,6 +70,27 @@ namespace TalkOut.Directing
             calls++;
             return calls % 2 == 0 ? Lines[(calls / 2 - 1) % Lines.Length] : "";
         }
+
+        public async Task<string> ReplyAsync(EventLog log, SceneStateModel state, string playerLine, CancellationToken ct)
+        {
+            await Task.Delay(500, ct);
+            return "Me? Uh. I mean — yes? Whatever you said. Yes.";
+        }
+    }
+
+    /// Name-match, then gaze, then shrug.
+    public class MockAddressee : IAddressee
+    {
+        public async Task<string> ResolveAsync(EventLog log, string playerLine, string gazedActorId,
+            IReadOnlyList<(string id, string name)> candidates, CancellationToken ct)
+        {
+            await Task.Delay(100, ct);
+            foreach (var (id, name) in candidates)
+            {
+                if (playerLine.IndexOf(name.Split(' ')[0], StringComparison.OrdinalIgnoreCase) >= 0) return id;
+            }
+            return gazedActorId ?? "";
+        }
     }
 
     public class MockJudge : IJudge

@@ -47,5 +47,15 @@ namespace TalkOut.Directing
 
         /// GBNF literal for a JSON string token, e.g. "\"amused\""
         private static string Quoted(string id) => $"\"\\\"{id}\\\"\"";
+
+        /// Grammar for the addressee ruling: the model can ONLY emit one of the
+        /// candidate actor ids, or the literal word unclear.
+        public static string BuildAddresseeGrammar(IEnumerable<string> candidateIds)
+        {
+            var options = candidateIds.Where(id => !string.IsNullOrEmpty(id))
+                .Select(id => $"\"{id}\"").ToList();
+            options.Add("\"unclear\"");
+            return "root ::= " + string.Join(" | ", options) + "\n";
+        }
     }
 }

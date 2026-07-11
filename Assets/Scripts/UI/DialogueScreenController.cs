@@ -17,6 +17,7 @@ namespace TalkOut.UI
         public FirstPersonRig firstPersonRig;
         public InteractionRaycaster raycaster;
         public VoiceInput voiceInput;
+        public FocusTracker focusTracker;
 
         [Tooltip("Scene-specific control hint; empty keeps the UXML default")]
         public string micHintText = "";
@@ -29,6 +30,7 @@ namespace TalkOut.UI
         private Label micStatus;
         private Label goalBanner;
         private Label timerLabel;
+        private Label focusHint;
         private VisualElement outcomeOverlay;
         private Label outcomeVerdict;
         private Label outcomeTitle;
@@ -57,6 +59,7 @@ namespace TalkOut.UI
             micStatus = root.Q<Label>("mic-status");
             goalBanner = root.Q<Label>("goal-banner");
             timerLabel = root.Q<Label>("timer");
+            focusHint = root.Q<Label>("focus-hint");
             outcomeOverlay = root.Q<VisualElement>("outcome-overlay");
             outcomeVerdict = root.Q<Label>("outcome-verdict");
             outcomeTitle = root.Q<Label>("outcome-title");
@@ -142,6 +145,22 @@ namespace TalkOut.UI
                 attachedToLog = true;
                 foreach (var e in turnController.Log.Events) OnEvent(e);
                 goalBanner.text = $"<color=#F5C518>GOAL:</color>  {turnController.Scenario.playerGoal}";
+            }
+
+            // who are you addressing? live gaze feedback under the crosshair
+            if (focusHint != null && focusTracker != null && turnController != null && turnController.Scenario != null)
+            {
+                string gazedId = focusTracker.GazedActorId;
+                if (!string.IsNullOrEmpty(gazedId))
+                {
+                    var npc = turnController.Scenario.GetNpc(gazedId);
+                    focusHint.text = $"🗣  {(npc != null ? npc.displayName : focusTracker.GazedDisplayName)}";
+                    focusHint.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    focusHint.style.display = DisplayStyle.None;
+                }
             }
 
             if (turnController != null && timerLabel != null && turnController.Scenario != null)

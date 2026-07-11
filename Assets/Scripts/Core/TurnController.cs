@@ -52,13 +52,21 @@ namespace TalkOut.Core
         private ICopBrain copBrain;
         private IJudge judge;
         private ISidekick sidekick;
+        private IAddressee addressee;
         private ISceneActionPerformer performer;
         private string npcDisplayName = "Officer";
         private string sidekickDisplayName = "";
 
+        /// Supplies the actor id the player is currently looking at (FocusTracker).
+        public Func<string> GazeProvider;
+
+        /// Who the last utterance was resolved to (for the debug overlay).
+        public string LastAddressee { get; private set; } = "";
+
         public void Initialize(ScenarioDefinition scenario, ICopBrain copBrain, IJudge judge,
-            ISceneActionPerformer performer, ISidekick sidekick = null)
+            ISceneActionPerformer performer, ISidekick sidekick = null, IAddressee addressee = null)
         {
+            this.addressee = addressee;
             Scenario = scenario;
             this.copBrain = copBrain;
             this.judge = judge;
@@ -253,6 +261,26 @@ namespace TalkOut.Core
 
             Phase = TurnPhase.CopThinking;
             ThinkingChanged?.Invoke(true);
+
+            // Who is the player talking to? Words first, gaze as evidence.
+            string target = await ResolveAddresseeAsync(playerLine);
+            if (this == null) return;
+            LastAddressee = target;
+
+            if (sidekick != null && target == Scenario.sidekickNpcId)
+            {
+                string sidekickReply = await sidekick.ReplyAsync(Log, State, playerLine, destroyCancellationToken);
+                if (this == null) return;
+                if (!string.IsNullOrEmpty(sidekickReply))
+                {
+                    ThinkingChanged?.Invoke(false);
+                    Log.Add(EventKind.NpcSaid, sidekickDisplayName, sidekickReply);
+                    await RunJudgePassAsync();
+                    return;
+                }
+                // sidekick had nothing — the main character fields it instead
+            }
+
             var reply = await copBrain.ReplyAsync(
                 Log, State, playerLine, p => PartialReply?.Invoke(p), destroyCancellationToken);
             if (this == null) return;
@@ -361,6 +389,50 @@ namespace TalkOut.Core
             Log.Add(EventKind.System, "", $"{outcome.title} — {outcome.resultText}");
             SceneEnded?.Invoke(outcome);
             return true;
+        }
+
+        private static readonly string[] NameStopWords = { "the", "that", "one", "guy" };
+
+        /// Deterministic name match -> LLM arbitration (with gaze evidence) ->
+        /// gaze alone -> the main character.
+        private async Task<string> ResolveAddresseeAsync(string playerLine)
+        {
+            string mainId = Scenario.respondingNpcId;
+            if (sidekick == null || string.IsNullOrEmpty(Scenario.sidekickNpcId)) return mainId;
+
+            var candidates = new List<(string id, string name)>
+            {
+                (mainId, npcDisplayName),
+                (Scenario.sidekickNpcId, sidekickDisplayName),
+            };
+
+            // 1. an explicit name settles it for free
+            foreach (var (id, name) in candidates)
+            {
+                foreach (var word in name.Split(' '))
+                {
+                    if (word.Length < 4 || Array.IndexOf(NameStopWords, word.ToLowerInvariant()) >= 0) continue;
+                    if (playerLine.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0) return id;
+                }
+            }
+
+            string gazed = GazeProvider?.Invoke() ?? "";
+            if (!candidates.Exists(c => c.id == gazed)) gazed = "";
+
+            // 2. LLM arbitration, gaze as evidence
+            if (addressee != null)
+            {
+                try
+                {
+                    string ruled = await addressee.ResolveAsync(Log, playerLine, gazed, candidates, destroyCancellationToken);
+                    if (!string.IsNullOrEmpty(ruled)) return ruled;
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception e) { Debug.LogWarning($"[TurnController] Addressee arbitration failed: {e.Message}"); }
+            }
+
+            // 3. gaze alone, else the main character
+            return !string.IsNullOrEmpty(gazed) ? gazed : mainId;
         }
 
         private void ApplyEngineEffects(ActionDefinition action)

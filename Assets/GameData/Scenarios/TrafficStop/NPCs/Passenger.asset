@@ -22,6 +22,11 @@ MonoBehaviour:
   personality: The player's best friend, riding shotgun. Loyal but a complete coward
     with zero poker face. Panics under the slightest pressure and overshares catastrophically.
   edgeProfile: 
-  voiceExamples: []
+  voiceExamples:
+  - We're going to jail. We're going to JAIL.
+  - I don't know anything! I wasn't even BORN!
+  - Just give him the hamster. He wants the hamster.
+  - I threw up a little. It's fine. It's fine.
+  - Officer, I've never met this person in my life. We carpool.
   faceSet: {fileID: 11400000, guid: 55eb756dddb66fd49aa734177cfbf88d, type: 2}
   prefab: {fileID: 0}

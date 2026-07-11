@@ -617,6 +617,13 @@ namespace TalkOut.EditorTools
             kingSpeaker.pitch = 3; // pompous
             kingSpeaker.wobble = king.GetComponent<WobbleAnimator>();
 
+            // --- Dennis the executioner (behind the prisoner) ---
+            var dennis = BuildCharacter("Dennis_Executioner", "passenger",
+                "Skin_Dennis", "Pants_Dark", "Dennis", standing: true, hatMat: "Pants_Dark");
+            dennis.transform.position = new Vector3(1.7f, 0, -1.6f);
+            dennis.transform.rotation = Quaternion.Euler(0, -120f, 0);
+            dennis.GetComponent<NPCActor>().canWalk = false;
+
             var dennisSpeaker = dennis.AddComponent<NpcSpeaker>();
             dennisSpeaker.actorDisplayName = "Dennis";
             dennisSpeaker.piperModel = "en_GB-northern_english_male-medium.onnx";
@@ -624,13 +631,6 @@ namespace TalkOut.EditorTools
             dennisSpeaker.rate = -2;
             dennisSpeaker.pitch = -5;
             dennisSpeaker.wobble = dennis.GetComponent<WobbleAnimator>();
-
-            // --- Dennis the executioner (behind the prisoner) ---
-            var dennis = BuildCharacter("Dennis_Executioner", "passenger",
-                "Skin_Dennis", "Pants_Dark", "Dennis", standing: true, hatMat: "Pants_Dark");
-            dennis.transform.position = new Vector3(1.7f, 0, -1.6f);
-            dennis.transform.rotation = Quaternion.Euler(0, -120f, 0);
-            dennis.GetComponent<NPCActor>().canWalk = false;
 
             var dennisTorso = dennis.transform.Find("TorsoPivot");
             var axe = new GameObject("Axe").transform;
@@ -890,6 +890,8 @@ namespace TalkOut.EditorTools
             rig.maxYaw = maxYaw;
             var raycaster = cameraGo.AddComponent<InteractionRaycaster>();
             raycaster.playerCamera = camera;
+            var focusTracker = cameraGo.AddComponent<FocusTracker>();
+            focusTracker.playerCamera = camera;
             SetupPostProcessing(cameraGo);
             return (cameraGo, rig, raycaster);
         }
@@ -948,7 +950,8 @@ namespace TalkOut.EditorTools
             var copAgent = llmGo.AddComponent<LLMAgent>();
             var judgeAgent = llmGo.AddComponent<LLMAgent>();
             var sidekickAgent = llmGo.AddComponent<LLMAgent>();
-            foreach (var agent in new[] { copAgent, judgeAgent, sidekickAgent })
+            var addresseeAgent = llmGo.AddComponent<LLMAgent>();
+            foreach (var agent in new[] { copAgent, judgeAgent, sidekickAgent, addresseeAgent })
             {
                 var so = new SerializedObject(agent);
                 TrySet(so, new[] { "_llm", "llm", "m_LLM" }, p => p.objectReferenceValue = llm);
@@ -961,9 +964,12 @@ namespace TalkOut.EditorTools
             judge.agent = judgeAgent;
             var sidekickBrain = llmGo.AddComponent<LlmSidekick>();
             sidekickBrain.agent = sidekickAgent;
+            var addresseeBrain = llmGo.AddComponent<LlmAddressee>();
+            addresseeBrain.agent = addresseeAgent;
             gameManager.llmCopBrain = copBrain;
             gameManager.llmJudge = judge;
             gameManager.llmSidekick = sidekickBrain;
+            gameManager.llmAddressee = addresseeBrain;
 
             // Whisper voice input
             var whisperGo = new GameObject("Whisper");
@@ -989,6 +995,7 @@ namespace TalkOut.EditorTools
             dialogue.firstPersonRig = rig;
             dialogue.raycaster = raycaster;
             dialogue.voiceInput = voiceInput;
+            dialogue.focusTracker = cameraGo.GetComponent<FocusTracker>();
             dialogue.micHintText = micHint;
 
             return turnController;

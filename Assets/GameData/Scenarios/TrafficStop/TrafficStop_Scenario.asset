@@ -118,6 +118,8 @@ MonoBehaviour:
   - That's... something. License and registration.
   - I'm going to pretend I didn't hear that.
   - Interesting. The radar gun disagrees.
+  sidekickNpcId: passenger
+  sidekickChatterChance: 0.25
   weirdnessChance: 0.25
   weirdSpice:
   - Cite a police code that does not exist, with a number that is clearly made up

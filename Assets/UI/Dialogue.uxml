@@ -8,6 +8,7 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="crosshair" class="crosshair" />
+        <ui:Label name="focus-hint" text="" class="focus-hint hidden" />
         <ui:Label name="interact-hint" text="" class="interact-hint hidden" />
 
         <ui:VisualElement name="chat-panel" class="chat-panel">
