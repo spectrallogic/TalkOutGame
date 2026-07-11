@@ -178,6 +178,57 @@ namespace TalkOut.Directing
             }
         }
 
+        // ---------------- sidekick ----------------
+
+        public static string BuildSidekickSystemPrompt(ScenarioDefinition scenario, System.Random rng)
+        {
+            var style = Resolve(scenario.promptStyle);
+            var sidekick = scenario.GetNpc(scenario.sidekickNpcId);
+            var main = scenario.GetNpc(scenario.respondingNpcId);
+            var sb = new StringBuilder();
+
+            sb.AppendLine(Tokens(PromptStyleLibrary.Pick(style.roleIntros, rng), sidekick, scenario));
+            sb.AppendLine();
+            sb.AppendLine("WHO YOU ARE:");
+            sb.AppendLine(sidekick.personality);
+            sb.AppendLine();
+            sb.AppendLine("THE SCENE:");
+            sb.AppendLine(scenario.sceneDescription);
+            sb.AppendLine();
+            sb.AppendLine($"YOUR JOB: you are the side character. You speak RARELY, and when you do it is EXACTLY ONE short line — " +
+                          $"often addressed to {main.displayName}, sometimes muttered to yourself. Never more than one sentence or two tiny ones. " +
+                          "You never drive the scene; you punctuate it.");
+            sb.AppendLine(Tokens(PromptStyleLibrary.Pick(style.weirdRules, rng), sidekick, scenario));
+
+            if (sidekick.voiceExamples != null && sidekick.voiceExamples.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine(PromptStyleLibrary.Pick(style.voiceExampleHeaders, rng));
+                foreach (var example in PromptStyleLibrary.Sample(sidekick.voiceExamples, style.voiceExampleCount, rng))
+                {
+                    sb.AppendLine($"\"{example}\"");
+                }
+            }
+
+            sb.AppendLine();
+            sb.AppendLine(Tokens(PromptStyleLibrary.Pick(style.outputRules, rng), sidekick, scenario));
+
+            return sb.ToString();
+        }
+
+        public static string BuildSidekickQuery(EventLog log, SceneStateModel state, ScenarioDefinition scenario)
+        {
+            var style = Resolve(scenario.promptStyle);
+            var sb = new StringBuilder();
+            sb.AppendLine(PromptStyleLibrary.Pick(style.historyHeaders));
+            sb.Append(log.ToTranscript());
+            sb.AppendLine();
+            sb.AppendLine("If you have ONE short line worth saying right now, say it.");
+            // contract line: "..." means staying quiet — keep exact
+            sb.Append("If you'd stay quiet (which is most of the time), reply with exactly: ...");
+            return sb.ToString();
+        }
+
         // ---------------- judge ----------------
 
         public static string BuildJudgeSystemPrompt(ScenarioDefinition scenario, System.Random rng)

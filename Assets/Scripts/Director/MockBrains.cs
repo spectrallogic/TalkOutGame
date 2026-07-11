@@ -53,6 +53,25 @@ namespace TalkOut.Directing
         public Task WarmupAsync() => Task.CompletedTask;
     }
 
+    public class MockSidekick : ISidekick
+    {
+        private int calls;
+
+        private static readonly string[] Lines =
+        {
+            "...Can I say something? No? Okay.",
+            "I'm just gonna... yeah. Never mind.",
+            "For the record, I wasn't here.",
+        };
+
+        public async Task<string> InterjectAsync(EventLog log, SceneStateModel state, CancellationToken ct)
+        {
+            await Task.Delay(400, ct);
+            calls++;
+            return calls % 2 == 0 ? Lines[(calls / 2 - 1) % Lines.Length] : "";
+        }
+    }
+
     public class MockJudge : IJudge
     {
         public async Task<JudgeVerdict> JudgeAsync(EventLog log, SceneStateModel state,

@@ -53,14 +53,21 @@ namespace TalkOut.EditorTools
             BuildTrafficStopScene();
             BuildDateScene();
             BuildKingScene();
+            TemplateLevelBuilder.BuildAllTemplates();
             BuildMainMenuScene();
-            EditorBuildSettings.scenes = new[]
+
+            var buildScenes = new System.Collections.Generic.List<EditorBuildSettingsScene>
             {
                 new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/TrafficStop.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/Date.unity", true),
                 new EditorBuildSettingsScene("Assets/Scenes/King.unity", true),
             };
+            foreach (var template in TemplateLevelBuilder.FindAllTemplates())
+            {
+                buildScenes.Add(new EditorBuildSettingsScene($"Assets/Scenes/{template.sceneName}.unity", true));
+            }
+            EditorBuildSettings.scenes = buildScenes.ToArray();
             Debug.Log("[TalkOut] Scenes built and added to Build Settings.");
         }
 
@@ -260,10 +267,19 @@ namespace TalkOut.EditorTools
 
             var speaker = officer.AddComponent<NpcSpeaker>();
             speaker.actorDisplayName = "Officer Glazer";
+            speaker.piperModel = "en_US-lessac-medium.onnx";
             speaker.voiceName = "David";
             speaker.rate = 2;
             speaker.pitch = -2;
             speaker.wobble = officer.GetComponent<WobbleAnimator>();
+
+            var bennySpeaker = passenger.gameObject.AddComponent<NpcSpeaker>();
+            bennySpeaker.actorDisplayName = "Benny";
+            bennySpeaker.piperModel = "en_US-danny-low.onnx";
+            bennySpeaker.voiceName = "Zira";
+            bennySpeaker.rate = 4;
+            bennySpeaker.pitch = 4;
+            bennySpeaker.wobble = passenger.GetComponent<WobbleAnimator>();
 
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/TrafficStop.unity");
             Debug.Log("[TalkOut] TrafficStop scene built.");
@@ -475,6 +491,7 @@ namespace TalkOut.EditorTools
 
             var chloeSpeaker = chloe.AddComponent<NpcSpeaker>();
             chloeSpeaker.actorDisplayName = "Chloe";
+            chloeSpeaker.piperModel = "en_US-amy-medium.onnx";
             chloeSpeaker.voiceName = "Zira";
             chloeSpeaker.rate = 2;
             chloeSpeaker.pitch = 2;
@@ -594,10 +611,19 @@ namespace TalkOut.EditorTools
 
             var kingSpeaker = king.AddComponent<NpcSpeaker>();
             kingSpeaker.actorDisplayName = "King Aldric IV";
+            kingSpeaker.piperModel = "en_GB-alan-medium.onnx";
             kingSpeaker.voiceName = "David";
             kingSpeaker.rate = 1;
             kingSpeaker.pitch = 3; // pompous
             kingSpeaker.wobble = king.GetComponent<WobbleAnimator>();
+
+            var dennisSpeaker = dennis.AddComponent<NpcSpeaker>();
+            dennisSpeaker.actorDisplayName = "Dennis";
+            dennisSpeaker.piperModel = "en_GB-northern_english_male-medium.onnx";
+            dennisSpeaker.voiceName = "David";
+            dennisSpeaker.rate = -2;
+            dennisSpeaker.pitch = -5;
+            dennisSpeaker.wobble = dennis.GetComponent<WobbleAnimator>();
 
             // --- Dennis the executioner (behind the prisoner) ---
             var dennis = BuildCharacter("Dennis_Executioner", "passenger",
@@ -829,6 +855,17 @@ namespace TalkOut.EditorTools
                     description = "Convince the king your beheading is, legally speaking, a scheduling error."
                 },
             };
+            // template-defined levels append themselves — no code per level
+            foreach (var template in TemplateLevelBuilder.FindAllTemplates())
+            {
+                menu.levels.Add(new MainMenuController.LevelEntry
+                {
+                    sceneName = template.sceneName,
+                    scenarioId = template.scenario.scenarioId,
+                    title = template.scenario.title.ToUpperInvariant(),
+                    description = template.menuDescription,
+                });
+            }
 
             EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainMenu.unity");
         }
@@ -837,7 +874,7 @@ namespace TalkOut.EditorTools
         // shared helpers
         // ====================================================================
 
-        private static (GameObject cameraGo, FirstPersonRig rig, InteractionRaycaster raycaster)
+        internal static (GameObject cameraGo, FirstPersonRig rig, InteractionRaycaster raycaster)
             BuildPlayerCamera(Transform parent, Vector3 localPos, float maxYaw)
         {
             var cameraGo = new GameObject("PlayerCamera");
@@ -857,17 +894,20 @@ namespace TalkOut.EditorTools
             return (cameraGo, rig, raycaster);
         }
 
-        private static TurnController WireGameSystems(
+        internal static TurnController WireGameSystems(
             string scenarioPath, GameObject cameraGo, FirstPersonRig rig,
             InteractionRaycaster raycaster, string micHint, bool includeHarness,
-            MusicStyle musicStyle = MusicStyle.Night)
+            MusicStyle musicStyle = MusicStyle.Night, bool includeMusic = true)
         {
             var systems = new GameObject("Systems");
 
-            var musicGo = new GameObject("Music");
-            musicGo.transform.SetParent(systems.transform);
-            musicGo.AddComponent<AudioSource>();
-            musicGo.AddComponent<MusicPlayer>().style = musicStyle;
+            if (includeMusic)
+            {
+                var musicGo = new GameObject("Music");
+                musicGo.transform.SetParent(systems.transform);
+                musicGo.AddComponent<AudioSource>();
+                musicGo.AddComponent<MusicPlayer>().style = musicStyle;
+            }
             var turnController = systems.AddComponent<TurnController>();
             var gameManager = systems.AddComponent<GameManager>();
             var propRegistry = systems.AddComponent<PropRegistry>();
@@ -907,7 +947,8 @@ namespace TalkOut.EditorTools
 
             var copAgent = llmGo.AddComponent<LLMAgent>();
             var judgeAgent = llmGo.AddComponent<LLMAgent>();
-            foreach (var agent in new[] { copAgent, judgeAgent })
+            var sidekickAgent = llmGo.AddComponent<LLMAgent>();
+            foreach (var agent in new[] { copAgent, judgeAgent, sidekickAgent })
             {
                 var so = new SerializedObject(agent);
                 TrySet(so, new[] { "_llm", "llm", "m_LLM" }, p => p.objectReferenceValue = llm);
@@ -918,8 +959,11 @@ namespace TalkOut.EditorTools
             copBrain.agent = copAgent;
             var judge = llmGo.AddComponent<LlmJudge>();
             judge.agent = judgeAgent;
+            var sidekickBrain = llmGo.AddComponent<LlmSidekick>();
+            sidekickBrain.agent = sidekickAgent;
             gameManager.llmCopBrain = copBrain;
             gameManager.llmJudge = judge;
+            gameManager.llmSidekick = sidekickBrain;
 
             // Whisper voice input
             var whisperGo = new GameObject("Whisper");
@@ -952,7 +996,7 @@ namespace TalkOut.EditorTools
 
         /// Wobbly character: legs + hip TorsoPivot (kinematic RB) carrying body,
         /// head w/ face quad, physics floppy arms, optional hat or hair.
-        private static GameObject BuildCharacter(
+        internal static GameObject BuildCharacter(
             string name, string actorId, string skinMat, string shirtMat, string faceSetName,
             bool standing, string hatMat = null, string hairMat = null)
         {
@@ -1011,7 +1055,7 @@ namespace TalkOut.EditorTools
             return root;
         }
 
-        private static FaceSet FindFaceSet(string faceSetName)
+        internal static FaceSet FindFaceSet(string faceSetName)
         {
             foreach (var guid in AssetDatabase.FindAssets($"{faceSetName}_FaceSet t:FaceSet"))
             {
@@ -1045,7 +1089,7 @@ namespace TalkOut.EditorTools
             var swing2 = joint.swing2Limit; swing2.limit = 70f; joint.swing2Limit = swing2;
         }
 
-        private static void SetupPostProcessing(GameObject cameraGo)
+        internal static void SetupPostProcessing(GameObject cameraGo)
         {
             string profilePath = "Assets/GameData/TalkOutPostFX.asset";
             var profile = AssetDatabase.LoadAssetAtPath<PostProcessProfile>(profilePath);
@@ -1100,7 +1144,7 @@ namespace TalkOut.EditorTools
             }
         }
 
-        private static Light MakeLight(Transform parent, string name, Vector3 localPos, Color color, float intensity, float range)
+        internal static Light MakeLight(Transform parent, string name, Vector3 localPos, Color color, float intensity, float range)
         {
             var light = new GameObject(name).AddComponent<Light>();
             if (parent != null) light.transform.SetParent(parent, false);
@@ -1112,7 +1156,7 @@ namespace TalkOut.EditorTools
             return light;
         }
 
-        private static GameObject Prim(
+        internal static GameObject Prim(
             PrimitiveType type, string name, Transform parent, Vector3 localPos, Vector3 localScale, string matName)
         {
             var go = GameObject.CreatePrimitive(type);
@@ -1128,14 +1172,14 @@ namespace TalkOut.EditorTools
             return go;
         }
 
-        private static GameObject StripCollider(GameObject go)
+        internal static GameObject StripCollider(GameObject go)
         {
             var collider = go.GetComponent<Collider>();
             if (collider != null) Object.DestroyImmediate(collider);
             return go;
         }
 
-        private static void AddProp(GameObject go, string scenarioFolder, string propId)
+        internal static void AddProp(GameObject go, string scenarioFolder, string propId)
         {
             var sceneProp = go.AddComponent<SceneProp>();
             sceneProp.definition = AssetDatabase.LoadAssetAtPath<PropDefinition>(
@@ -1143,7 +1187,7 @@ namespace TalkOut.EditorTools
             sceneProp.targetRenderer = go.GetComponent<Renderer>();
         }
 
-        private static void Location(Transform parent, string id, Vector3 position, float yaw)
+        internal static void Location(Transform parent, string id, Vector3 position, float yaw)
         {
             var go = new GameObject($"Loc_{id}");
             go.transform.SetParent(parent, false);

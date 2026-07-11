@@ -25,6 +25,7 @@ namespace TalkOut.Core
         public TurnController turnController;
         public LlmCopBrain llmCopBrain;
         public LlmJudge llmJudge;
+        public LlmSidekick llmSidekick;
 
         private void Awake()
         {
@@ -41,6 +42,8 @@ namespace TalkOut.Core
 
             ICopBrain copBrain;
             IJudge judge;
+            ISidekick sidekick = null;
+            bool wantsSidekick = !string.IsNullOrEmpty(scenario.sidekickNpcId);
             bool modelPresent = llmConfig != null && File.Exists(llmConfig.ResolveModelPath());
 
             if (useMockBrains || !modelPresent || llmCopBrain == null || llmJudge == null)
@@ -53,6 +56,7 @@ namespace TalkOut.Core
                 }
                 copBrain = new MockCopBrain();
                 judge = new MockJudge();
+                if (wantsSidekick) sidekick = new MockSidekick();
             }
             else
             {
@@ -60,10 +64,15 @@ namespace TalkOut.Core
                 llmJudge.Configure(scenario, llmConfig);
                 copBrain = llmCopBrain;
                 judge = llmJudge;
+                if (wantsSidekick && llmSidekick != null)
+                {
+                    llmSidekick.Configure(scenario, llmConfig);
+                    sidekick = llmSidekick;
+                }
             }
 
             var performer = FindObjectOfType<WorldPerformer>();
-            turnController.Initialize(scenario, copBrain, judge, performer);
+            turnController.Initialize(scenario, copBrain, judge, performer, sidekick);
             // (outcome recording + scoring happens inside TurnController at scene end)
 
             foreach (var speaker in FindObjectsOfType<NpcSpeaker>())

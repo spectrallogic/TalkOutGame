@@ -120,3 +120,8 @@ Undreamai*.zip
 
 # Whisper native caches (if whisper.unity drops anything here)
 /[Aa]ssets/StreamingAssets/Whisper*
+
+# Piper TTS engine + neural voices (downloaded, ~300MB)
+/[Aa]ssets/StreamingAssets/TTS/*
+!/[Aa]ssets/StreamingAssets/TTS/README.md
+!/[Aa]ssets/StreamingAssets/TTS/README.md.meta

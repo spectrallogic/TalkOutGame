@@ -15,7 +15,11 @@ Whisper transcribes your voice, and Windows TTS gives the cop a voice.
   seat, and a glove box you probably shouldn't open.
 - **The Date** — convince Chloe there should be a second one. Don't mention the car.
 - **The Execution** — convince King Aldric IV that your beheading is, legally
-  speaking, a scheduling error. Pet the corgi. Grovel. Mind the goblet.
+  speaking, a scheduling error. Pet the corgi. Grovel. Mind the goblet. Dennis
+  the executioner has questions for the king; you will not enjoy them.
+- **The Open Mic** — make a dark room full of silhouettes laugh. The crowd never
+  speaks; you get coughs, chair creaks, and — if you're good — the wave. There is
+  one guy at the front table who came to have a GOOD TIME.
 
 NPCs run on a **weirdness dial**: scenes feel normal until, sometimes, they quietly
 aren't ("Mmm." — misheard words, tiny personal laws, anecdotes that help no one).
@@ -25,8 +29,10 @@ The characters never acknowledge it. That's the bit.
 
 1. Open with **Unity 2022.3.62f3** (packages restore automatically: LLMUnity,
    whisper.unity, Post Processing, Newtonsoft).
-2. Download the two models into `Assets/StreamingAssets/Models/` — see the
-   README there (Dolphin 3.0 Llama 3.1 8B GGUF ~4.9 GB + Whisper base.en ~148 MB, both gitignored).
+2. Download the models into `Assets/StreamingAssets/` — see the READMEs in
+   `Models/` (Dolphin 3.0 Llama 3.1 8B GGUF ~4.9 GB + Whisper base.en ~148 MB)
+   and `TTS/` (Piper neural voices, ~300 MB; without them the game falls back
+   to robotic Windows SAPI voices). All gitignored.
 3. In Unity: **Tools → TalkOut → Build Everything (Graphics + Textures + Assets + Scenes)**.
 4. Open `Assets/Scenes/TrafficStop.unity`, press **Play**.
 
@@ -59,8 +65,13 @@ The characters never acknowledge it. That's the bit.
 - `Scripts/Editor` — `Tools/TalkOut/*` rebuilds everything idempotently.
 - Mock brains auto-engage if the GGUF is missing (`GameManager.useMockBrains` forces them).
 
-New scenarios = new ScriptableObject data (opener line, judge guidance, NPCs,
-action catalog, props) + a scene. No new core code.
+New scenarios = pure data. Author a `ScenarioDefinition` (opener, judge
+guidance, NPCs, actions, emotional meters) + a `LevelTemplate` asset
+(environment preset, character placement/voices, clickable interactables,
+player position) — `Tools → TalkOut → 4. Build Template Levels` generates the
+scene, and the menu + build settings pick it up automatically. The Open Mic
+level is built entirely this way; zero bespoke code. Levels can also define a
+sidekick NPC who interjects (Dennis, Benny, That One Guy).
 
 ## Models
 

@@ -51,16 +51,22 @@ namespace TalkOut.Core
 
         private ICopBrain copBrain;
         private IJudge judge;
+        private ISidekick sidekick;
         private ISceneActionPerformer performer;
         private string npcDisplayName = "Officer";
+        private string sidekickDisplayName = "";
 
         public void Initialize(ScenarioDefinition scenario, ICopBrain copBrain, IJudge judge,
-            ISceneActionPerformer performer)
+            ISceneActionPerformer performer, ISidekick sidekick = null)
         {
             Scenario = scenario;
             this.copBrain = copBrain;
             this.judge = judge;
+            this.sidekick = sidekick;
             this.performer = performer;
+
+            var sidekickNpc = scenario.GetNpc(scenario.sidekickNpcId);
+            if (sidekickNpc != null) sidekickDisplayName = sidekickNpc.displayName;
             State = new SceneStateModel(scenario);
             Log = new EventLog { PlayerLabel = scenario.playerTranscriptName };
             PlayerTurnsTaken = 0;
@@ -316,6 +322,24 @@ namespace TalkOut.Core
             else if (PlayerTurnsTaken >= Scenario.maxTurns) outcomeId = Scenario.maxTurnsOutcomeId;
 
             if (outcomeId != null && EndScene(outcomeId)) return;
+
+            // Sidekick chatter: sometimes the second character pipes up
+            // (Dennis to the king, Benny to the void).
+            if (sidekick != null && !string.IsNullOrEmpty(sidekickDisplayName) &&
+                UnityEngine.Random.value < Scenario.sidekickChatterChance)
+            {
+                try
+                {
+                    string line = await sidekick.InterjectAsync(Log, State, destroyCancellationToken);
+                    if (this == null) return;
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        Log.Add(EventKind.NpcSaid, sidekickDisplayName, line);
+                    }
+                }
+                catch (OperationCanceledException) { return; }
+                catch (Exception e) { Debug.LogException(e); }
+            }
 
             Phase = TurnPhase.AwaitingInput;
             IdleSeconds = 0f;

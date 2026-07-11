@@ -65,6 +65,12 @@ namespace TalkOut.Data
         [Tooltip("In-fiction canned NPC lines used when an LLM call fails")]
         public List<string> fallbackLines = new List<string>();
 
+        [Header("Sidekick chatter")]
+        [Tooltip("NPC id of a second character who occasionally interjects (empty = none)")]
+        public string sidekickNpcId = "";
+        [Tooltip("Chance after each exchange that the sidekick pipes up")]
+        [Range(0f, 1f)] public float sidekickChatterChance = 0.3f;
+
         [Header("Weirdness (ITYSL dial)")]
         [Tooltip("Chance per NPC turn that a secret weird directive is injected (0-1)")]
         [Range(0f, 1f)] public float weirdnessChance = 0.25f;

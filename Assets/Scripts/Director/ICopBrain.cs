@@ -42,4 +42,12 @@ namespace TalkOut.Directing
             System.Collections.Generic.IReadOnlyList<Data.ActionDefinition> availableActions,
             CancellationToken ct);
     }
+
+    /// A second character who occasionally pipes up with ONE short line
+    /// (Dennis to the king, Benny to nobody in particular).
+    /// Returns empty when they'd stay quiet.
+    public interface ISidekick
+    {
+        Task<string> InterjectAsync(EventLog log, SceneStateModel state, CancellationToken ct);
+    }
 }
